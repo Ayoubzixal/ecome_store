@@ -8,7 +8,7 @@ import { ShoppingCart, Heart, Search, Menu, X, Plus, Minus, Trash2, Edit, Packag
 const CONFIG = {
     whatsappNumber: '212600000000', // Your WhatsApp number
     adminPassword: 'seller2024',    // Admin password - CHANGE THIS!
-    adminUrl: '/manage-store-2024'  // Secret admin URL - CHANGE THIS!
+    adminUrl: '/manage-store-2025'  // Secret admin URL - CHANGE THIS!
 }
 
 // ========================================
