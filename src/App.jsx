@@ -1,404 +1,137 @@
 import { useState, useEffect, createContext, useContext } from 'react'
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
-import { ShoppingCart, Heart, Search, User, Menu, X, Plus, Minus, Trash2, Edit, Package, Truck, Shield, Headphones, ArrowRight, Instagram, Facebook, Twitter, Globe } from 'lucide-react'
+import { BrowserRouter as Router, Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom'
+import { ShoppingCart, Heart, Search, Menu, X, Plus, Minus, Trash2, Edit, Package, Truck, Shield, Headphones, ArrowRight, Instagram, Facebook, Twitter, Globe, Lock } from 'lucide-react'
+
+// ========================================
+// CONFIG - CHANGE THESE!
+// ========================================
+const CONFIG = {
+    whatsappNumber: '212600000000', // Your WhatsApp number
+    adminPassword: 'seller2024',    // Admin password - CHANGE THIS!
+    adminUrl: '/manage-store-2024'  // Secret admin URL - CHANGE THIS!
+}
 
 // ========================================
 // TRANSLATIONS
 // ========================================
 const translations = {
     ar: {
-        home: "الرئيسية",
-        categories: "الفئات",
-        products: "المنتجات",
-        about: "من نحن",
-        contact: "اتصل بنا",
-        seller: "البائع",
-        heroBadge: "أزياء مغربية أصيلة",
-        heroTitle: "اكتشف جمال",
-        heroTitleHighlight: "المغرب",
-        heroDescription: "مجموعة فريدة من القفاطين والجلابيب والأحذية المغربية التقليدية. صنع يدوي بجودة عالية.",
-        shopNow: "تسوق الآن",
-        viewAll: "عرض الكل",
-        productsCount: "منتج",
-        kaftans: "القفاطين",
-        djellabas: "الجلابيب",
-        shoes: "الأحذية",
-        accessories: "الإكسسوارات",
-        dresses: "الفساتين",
-        tunics: "التونيكات",
-        ourCollection: "مجموعتنا",
-        featuredProducts: "منتجات مميزة",
-        all: "الكل",
-        addToCart: "أضف للسلة",
-        new: "جديد",
-        sale: "تخفيض",
-        hot: "رائج",
-        freeShipping: "شحن مجاني",
-        freeShippingDesc: "للطلبات فوق 150$",
-        securePayment: "دفع آمن",
-        securePaymentDesc: "حماية 100%",
-        support247: "دعم متواصل",
-        support247Desc: "خدمة على مدار الساعة",
-        easyReturns: "إرجاع سهل",
-        easyReturnsDesc: "خلال 30 يوم",
-        newsletter: "اشترك في نشرتنا",
-        newsletterDesc: "احصل على خصم 10% على طلبك الأول",
-        emailPlaceholder: "بريدك الإلكتروني",
-        subscribe: "اشتراك",
-        shop: "تسوق",
-        help: "مساعدة",
-        faq: "الأسئلة الشائعة",
-        shipping: "الشحن",
-        returns: "الإرجاع",
-        trackOrder: "تتبع الطلب",
-        aboutUs: "من نحن",
-        careers: "وظائف",
-        press: "صحافة",
-        footerDescription: "متجر المغرب - وجهتك للأزياء المغربية الأصيلة",
-        allRights: "جميع الحقوق محفوظة",
-        shoppingCart: "سلة التسوق",
-        cartEmpty: "سلتك فارغة",
-        total: "المجموع",
-        checkout: "إتمام الشراء",
-        sellerDashboard: "لوحة التحكم",
-        backToStore: "العودة للمتجر",
-        addProduct: "إضافة منتج",
-        totalProducts: "المنتجات",
-        totalValue: "القيمة",
-        onSale: "في التخفيضات",
-        allProducts: "جميع المنتجات",
-        image: "الصورة",
-        name: "الاسم",
-        category: "الفئة",
-        price: "السعر",
-        badge: "الشارة",
-        actions: "الإجراءات",
-        editProduct: "تعديل المنتج",
-        addNewProduct: "إضافة منتج جديد",
-        productName: "اسم المنتج",
-        originalPrice: "السعر الأصلي",
-        imageUrl: "رابط الصورة",
-        description: "الوصف",
-        cancel: "إلغاء",
-        save: "حفظ",
-        update: "تحديث",
-        none: "بدون",
-        optional: "اختياري",
-        addedToCart: "تمت الإضافة للسلة",
-        removedFromCart: "تمت الإزالة",
-        productAdded: "تمت إضافة المنتج",
-        productUpdated: "تم تحديث المنتج",
-        productDeleted: "تم حذف المنتج",
-        confirmDelete: "هل تريد حذف هذا المنتج؟",
-        thankYou: "شكراً لاشتراكك!",
-        freeShippingBanner: "شحن مجاني للطلبات فوق 150$"
+        home: "الرئيسية", categories: "الفئات", products: "المنتجات", about: "من نحن",
+        heroBadge: "أزياء مغربية أصيلة", heroTitle: "اكتشف جمال", heroTitleHighlight: "المغرب",
+        heroDescription: "مجموعة فريدة من القفاطين والجلابيب والأحذية المغربية التقليدية.",
+        shopNow: "تسوق الآن", viewAll: "عرض الكل", productsCount: "منتج",
+        kaftans: "القفاطين", djellabas: "الجلابيب", shoes: "الأحذية",
+        accessories: "الإكسسوارات", dresses: "الفساتين", tunics: "التونيكات",
+        featuredProducts: "منتجات مميزة", all: "الكل", addToCart: "أضف للسلة",
+        new: "جديد", sale: "تخفيض", hot: "رائج",
+        freeShipping: "شحن مجاني", securePayment: "دفع آمن",
+        support247: "دعم متواصل", easyReturns: "إرجاع سهل",
+        newsletter: "اشترك في نشرتنا", subscribe: "اشتراك",
+        shoppingCart: "سلة التسوق", cartEmpty: "سلتك فارغة", total: "المجموع", checkout: "إتمام الطلب",
+        freeShippingBanner: "شحن مجاني للطلبات فوق 150$",
+        adminLogin: "تسجيل دخول المدير", password: "كلمة المرور", login: "دخول", wrongPassword: "كلمة مرور خاطئة",
+        dashboard: "لوحة التحكم", addProduct: "إضافة منتج", totalProducts: "المنتجات", totalValue: "القيمة",
+        productName: "اسم المنتج", category: "الفئة", price: "السعر", imageUrl: "رابط الصورة",
+        save: "حفظ", cancel: "إلغاء", delete: "حذف", edit: "تعديل", logout: "خروج",
+        orderSummary: "ملخص الطلب", customerName: "الاسم", phone: "الهاتف", city: "المدينة", address: "العنوان",
+        sendWhatsApp: "أرسل عبر واتساب", back: "رجوع"
     },
     fr: {
-        home: "Accueil",
-        categories: "Catégories",
-        products: "Produits",
-        about: "À Propos",
-        contact: "Contact",
-        seller: "Vendeur",
-        heroBadge: "Mode Marocaine Authentique",
-        heroTitle: "Découvrez la beauté du",
-        heroTitleHighlight: "Maroc",
-        heroDescription: "Une collection unique de caftans, djellabas et chaussures marocaines traditionnelles. Artisanat de haute qualité.",
-        shopNow: "Acheter",
-        viewAll: "Voir tout",
-        productsCount: "Produits",
-        kaftans: "Caftans",
-        djellabas: "Djellabas",
-        shoes: "Chaussures",
-        accessories: "Accessoires",
-        dresses: "Robes",
-        tunics: "Tuniques",
-        ourCollection: "Notre Collection",
-        featuredProducts: "Produits Vedettes",
-        all: "Tous",
-        addToCart: "Ajouter",
-        new: "Nouveau",
-        sale: "Solde",
-        hot: "Tendance",
-        freeShipping: "Livraison Gratuite",
-        freeShippingDesc: "Commandes +150$",
-        securePayment: "Paiement Sécurisé",
-        securePaymentDesc: "Protection 100%",
-        support247: "Support 24/7",
-        support247Desc: "Service continu",
-        easyReturns: "Retours Faciles",
-        easyReturnsDesc: "Sous 30 jours",
-        newsletter: "Newsletter",
-        newsletterDesc: "10% de réduction sur votre première commande",
-        emailPlaceholder: "Votre email",
-        subscribe: "S'abonner",
-        shop: "Boutique",
-        help: "Aide",
-        faq: "FAQ",
-        shipping: "Livraison",
-        returns: "Retours",
-        trackOrder: "Suivi",
-        aboutUs: "À Propos",
-        careers: "Carrières",
-        press: "Presse",
-        footerDescription: "Maroc Boutique - Votre destination pour la mode marocaine authentique",
-        allRights: "Tous droits réservés",
-        shoppingCart: "Panier",
-        cartEmpty: "Panier vide",
-        total: "Total",
-        checkout: "Commander",
-        sellerDashboard: "Tableau de Bord",
-        backToStore: "Retour",
-        addProduct: "Ajouter",
-        totalProducts: "Produits",
-        totalValue: "Valeur",
-        onSale: "En Solde",
-        allProducts: "Tous les Produits",
-        image: "Image",
-        name: "Nom",
-        category: "Catégorie",
-        price: "Prix",
-        badge: "Badge",
-        actions: "Actions",
-        editProduct: "Modifier",
-        addNewProduct: "Nouveau Produit",
-        productName: "Nom",
-        originalPrice: "Prix Original",
-        imageUrl: "URL Image",
-        description: "Description",
-        cancel: "Annuler",
-        save: "Enregistrer",
-        update: "Mettre à Jour",
-        none: "Aucun",
-        optional: "optionnel",
-        addedToCart: "Ajouté au panier",
-        removedFromCart: "Retiré",
-        productAdded: "Produit ajouté",
-        productUpdated: "Produit mis à jour",
-        productDeleted: "Produit supprimé",
-        confirmDelete: "Supprimer ce produit?",
-        thankYou: "Merci!",
-        freeShippingBanner: "Livraison gratuite pour +150$"
+        home: "Accueil", categories: "Catégories", products: "Produits", about: "À Propos",
+        heroBadge: "Mode Marocaine", heroTitle: "Découvrez", heroTitleHighlight: "le Maroc",
+        heroDescription: "Collection unique de caftans, djellabas et chaussures marocaines.",
+        shopNow: "Acheter", viewAll: "Voir tout", productsCount: "Produits",
+        kaftans: "Caftans", djellabas: "Djellabas", shoes: "Chaussures",
+        accessories: "Accessoires", dresses: "Robes", tunics: "Tuniques",
+        featuredProducts: "Produits Vedettes", all: "Tous", addToCart: "Ajouter",
+        new: "Nouveau", sale: "Solde", hot: "Tendance",
+        freeShipping: "Livraison Gratuite", securePayment: "Paiement Sécurisé",
+        support247: "Support 24/7", easyReturns: "Retours Faciles",
+        newsletter: "Newsletter", subscribe: "S'abonner",
+        shoppingCart: "Panier", cartEmpty: "Panier vide", total: "Total", checkout: "Commander",
+        freeShippingBanner: "Livraison gratuite +150$",
+        adminLogin: "Connexion Admin", password: "Mot de passe", login: "Connexion", wrongPassword: "Mot de passe incorrect",
+        dashboard: "Tableau de bord", addProduct: "Ajouter", totalProducts: "Produits", totalValue: "Valeur",
+        productName: "Nom", category: "Catégorie", price: "Prix", imageUrl: "URL Image",
+        save: "Enregistrer", cancel: "Annuler", delete: "Supprimer", edit: "Modifier", logout: "Déconnexion",
+        orderSummary: "Résumé", customerName: "Nom", phone: "Téléphone", city: "Ville", address: "Adresse",
+        sendWhatsApp: "Envoyer WhatsApp", back: "Retour"
     },
     en: {
-        home: "Home",
-        categories: "Categories",
-        products: "Products",
-        about: "About",
-        contact: "Contact",
-        seller: "Seller",
-        heroBadge: "Authentic Moroccan Fashion",
-        heroTitle: "Discover the beauty of",
-        heroTitleHighlight: "Morocco",
-        heroDescription: "A unique collection of traditional Moroccan kaftans, djellabas, and shoes. High-quality handmade craftsmanship.",
-        shopNow: "Shop Now",
-        viewAll: "View All",
-        productsCount: "Products",
-        kaftans: "Kaftans",
-        djellabas: "Djellabas",
-        shoes: "Shoes",
-        accessories: "Accessories",
-        dresses: "Dresses",
-        tunics: "Tunics",
-        ourCollection: "Our Collection",
-        featuredProducts: "Featured Products",
-        all: "All",
-        addToCart: "Add to Cart",
-        new: "New",
-        sale: "Sale",
-        hot: "Hot",
-        freeShipping: "Free Shipping",
-        freeShippingDesc: "Orders over $150",
-        securePayment: "Secure Payment",
-        securePaymentDesc: "100% Protected",
-        support247: "24/7 Support",
-        support247Desc: "Always available",
-        easyReturns: "Easy Returns",
-        easyReturnsDesc: "30 day policy",
-        newsletter: "Newsletter",
-        newsletterDesc: "Get 10% off your first order",
-        emailPlaceholder: "Your email",
-        subscribe: "Subscribe",
-        shop: "Shop",
-        help: "Help",
-        faq: "FAQ",
-        shipping: "Shipping",
-        returns: "Returns",
-        trackOrder: "Track Order",
-        aboutUs: "About Us",
-        careers: "Careers",
-        press: "Press",
-        footerDescription: "Maroc Boutique - Your destination for authentic Moroccan fashion",
-        allRights: "All rights reserved",
-        shoppingCart: "Cart",
-        cartEmpty: "Cart is empty",
-        total: "Total",
-        checkout: "Checkout",
-        sellerDashboard: "Dashboard",
-        backToStore: "Back",
-        addProduct: "Add Product",
-        totalProducts: "Products",
-        totalValue: "Value",
-        onSale: "On Sale",
-        allProducts: "All Products",
-        image: "Image",
-        name: "Name",
-        category: "Category",
-        price: "Price",
-        badge: "Badge",
-        actions: "Actions",
-        editProduct: "Edit Product",
-        addNewProduct: "New Product",
-        productName: "Name",
-        originalPrice: "Original Price",
-        imageUrl: "Image URL",
-        description: "Description",
-        cancel: "Cancel",
-        save: "Save",
-        update: "Update",
-        none: "None",
-        optional: "optional",
-        addedToCart: "Added to cart",
-        removedFromCart: "Removed",
-        productAdded: "Product added",
-        productUpdated: "Product updated",
-        productDeleted: "Product deleted",
-        confirmDelete: "Delete this product?",
-        thankYou: "Thank you!",
-        freeShippingBanner: "Free shipping on orders over $150"
+        home: "Home", categories: "Categories", products: "Products", about: "About",
+        heroBadge: "Moroccan Fashion", heroTitle: "Discover", heroTitleHighlight: "Morocco",
+        heroDescription: "Unique collection of traditional Moroccan kaftans, djellabas, and shoes.",
+        shopNow: "Shop Now", viewAll: "View All", productsCount: "Products",
+        kaftans: "Kaftans", djellabas: "Djellabas", shoes: "Shoes",
+        accessories: "Accessories", dresses: "Dresses", tunics: "Tunics",
+        featuredProducts: "Featured Products", all: "All", addToCart: "Add to Cart",
+        new: "New", sale: "Sale", hot: "Hot",
+        freeShipping: "Free Shipping", securePayment: "Secure Payment",
+        support247: "24/7 Support", easyReturns: "Easy Returns",
+        newsletter: "Newsletter", subscribe: "Subscribe",
+        shoppingCart: "Cart", cartEmpty: "Cart is empty", total: "Total", checkout: "Checkout",
+        freeShippingBanner: "Free shipping on orders over $150",
+        adminLogin: "Admin Login", password: "Password", login: "Login", wrongPassword: "Wrong password",
+        dashboard: "Dashboard", addProduct: "Add Product", totalProducts: "Products", totalValue: "Value",
+        productName: "Name", category: "Category", price: "Price", imageUrl: "Image URL",
+        save: "Save", cancel: "Cancel", delete: "Delete", edit: "Edit", logout: "Logout",
+        orderSummary: "Order Summary", customerName: "Name", phone: "Phone", city: "City", address: "Address",
+        sendWhatsApp: "Send via WhatsApp", back: "Back"
     }
 }
 
-// Language Context
-const LanguageContext = createContext()
-const useLanguage = () => useContext(LanguageContext)
-
-// Sample products
-const initialProducts = [
-    {
-        id: 1,
-        name: { ar: "قفطان ملكي تقليدي", fr: "Caftan Royal", en: "Royal Kaftan" },
-        category: "kaftans",
-        price: 299,
-        originalPrice: 399,
-        image: "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=500",
-        badge: "hot",
-        description: { ar: "قفطان فاخر", fr: "Caftan de luxe", en: "Luxury kaftan" }
-    },
-    {
-        id: 2,
-        name: { ar: "بلغة جلدية", fr: "Babouche Cuir", en: "Leather Babouche" },
-        category: "shoes",
-        price: 89,
-        originalPrice: null,
-        image: "https://images.unsplash.com/photo-1608256246200-53e635b5b65f?w=500",
-        badge: "new",
-        description: { ar: "بلغة تقليدية", fr: "Babouche traditionnelle", en: "Traditional babouche" }
-    },
-    {
-        id: 3,
-        name: { ar: "جلابة مطرزة", fr: "Djellaba Brodée", en: "Embroidered Djellaba" },
-        category: "djellabas",
-        price: 199,
-        originalPrice: 249,
-        image: "https://images.unsplash.com/photo-1590735213920-68192a487bc2?w=500",
-        badge: "sale",
-        description: { ar: "جلابة أنيقة", fr: "Djellaba élégante", en: "Elegant djellaba" }
-    },
-    {
-        id: 4,
-        name: { ar: "فستان مغربي", fr: "Robe Marocaine", en: "Moroccan Dress" },
-        category: "dresses",
-        price: 159,
-        originalPrice: null,
-        image: "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=500",
-        badge: "new",
-        description: { ar: "فستان عصري", fr: "Robe moderne", en: "Modern dress" }
-    },
-    {
-        id: 5,
-        name: { ar: "صندل جلدي", fr: "Sandales Cuir", en: "Leather Sandals" },
-        category: "shoes",
-        price: 75,
-        originalPrice: 95,
-        image: "https://images.unsplash.com/photo-1603487742131-4160ec999306?w=500",
-        badge: "sale",
-        description: { ar: "صندل يدوي", fr: "Sandales artisanales", en: "Handmade sandals" }
-    },
-    {
-        id: 6,
-        name: { ar: "قفطان عروس", fr: "Caftan Mariée", en: "Bridal Kaftan" },
-        category: "kaftans",
-        price: 599,
-        originalPrice: null,
-        image: "https://images.unsplash.com/photo-1583391733956-6c78276477e2?w=500",
-        badge: "hot",
-        description: { ar: "قفطان زفاف", fr: "Caftan de mariée", en: "Bridal kaftan" }
-    },
-    {
-        id: 7,
-        name: { ar: "بلغة رجالية", fr: "Babouche Homme", en: "Men's Babouche" },
-        category: "shoes",
-        price: 79,
-        originalPrice: null,
-        image: "https://images.unsplash.com/photo-1449505278894-297fdb3edbc1?w=500",
-        badge: null,
-        description: { ar: "بلغة كلاسيكية", fr: "Babouche classique", en: "Classic babouche" }
-    },
-    {
-        id: 8,
-        name: { ar: "تونيك مغربي", fr: "Tunique Marocaine", en: "Moroccan Tunic" },
-        category: "tunics",
-        price: 89,
-        originalPrice: 119,
-        image: "https://images.unsplash.com/photo-1434389677669-e08b4cac3105?w=500",
-        badge: "sale",
-        description: { ar: "تونيك مريح", fr: "Tunique confortable", en: "Comfortable tunic" }
-    }
+// Default products
+const defaultProducts = [
+    { id: 1, name: { ar: "قفطان ملكي", fr: "Caftan Royal", en: "Royal Kaftan" }, category: "kaftans", price: 299, originalPrice: 399, image: "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=500", badge: "hot" },
+    { id: 2, name: { ar: "بلغة جلدية", fr: "Babouche Cuir", en: "Leather Babouche" }, category: "shoes", price: 89, originalPrice: null, image: "https://images.unsplash.com/photo-1608256246200-53e635b5b65f?w=500", badge: "new" },
+    { id: 3, name: { ar: "جلابة مطرزة", fr: "Djellaba Brodée", en: "Embroidered Djellaba" }, category: "djellabas", price: 199, originalPrice: 249, image: "https://images.unsplash.com/photo-1590735213920-68192a487bc2?w=500", badge: "sale" },
+    { id: 4, name: { ar: "فستان مغربي", fr: "Robe Marocaine", en: "Moroccan Dress" }, category: "dresses", price: 159, originalPrice: null, image: "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=500", badge: "new" },
+    { id: 5, name: { ar: "قفطان عروس", fr: "Caftan Mariée", en: "Bridal Kaftan" }, category: "kaftans", price: 599, originalPrice: null, image: "https://images.unsplash.com/photo-1583391733956-6c78276477e2?w=500", badge: "hot" },
+    { id: 6, name: { ar: "صندل جلدي", fr: "Sandales Cuir", en: "Leather Sandals" }, category: "shoes", price: 75, originalPrice: 95, image: "https://images.unsplash.com/photo-1603487742131-4160ec999306?w=500", badge: "sale" }
 ]
 
 const categories = [
-    { key: "kaftans", count: 24, image: "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=400" },
-    { key: "djellabas", count: 18, image: "https://images.unsplash.com/photo-1590735213920-68192a487bc2?w=400" },
-    { key: "shoes", count: 32, image: "https://images.unsplash.com/photo-1608256246200-53e635b5b65f?w=400" },
-    { key: "accessories", count: 45, image: "https://images.unsplash.com/photo-1611652022419-a9419f74343d?w=400" }
+    { key: "kaftans", image: "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=400" },
+    { key: "djellabas", image: "https://images.unsplash.com/photo-1590735213920-68192a487bc2?w=400" },
+    { key: "shoes", image: "https://images.unsplash.com/photo-1608256246200-53e635b5b65f?w=400" },
+    { key: "accessories", image: "https://images.unsplash.com/photo-1611652022419-a9419f74343d?w=400" }
 ]
 
-// Toast
-function Toast({ message, type, onClose }) {
-    useEffect(() => {
-        const timer = setTimeout(onClose, 2500)
-        return () => clearTimeout(timer)
-    }, [onClose])
-    return <div className={`toast ${type}`}>{message}</div>
+// Context
+const AppContext = createContext()
+const useApp = () => useContext(AppContext)
+
+// Load/Save products from localStorage
+const loadProducts = () => {
+    try {
+        const saved = localStorage.getItem('store_products')
+        return saved ? JSON.parse(saved) : defaultProducts
+    } catch { return defaultProducts }
 }
+const saveProducts = (products) => {
+    localStorage.setItem('store_products', JSON.stringify(products))
+}
+
+// ========================================
+// COMPONENTS
+// ========================================
 
 // Language Switcher
 function LanguageSwitcher() {
-    const { language, setLanguage } = useLanguage()
-    const [isOpen, setIsOpen] = useState(false)
-    const langs = [
-        { code: 'ar', label: 'العربية' },
-        { code: 'fr', label: 'FR' },
-        { code: 'en', label: 'EN' }
-    ]
-    const current = langs.find(l => l.code === language)
-
+    const { language, setLanguage } = useApp()
+    const [open, setOpen] = useState(false)
+    const langs = [{ code: 'ar', label: 'العربية' }, { code: 'fr', label: 'FR' }, { code: 'en', label: 'EN' }]
     return (
-        <div className="language-switcher">
-            <button className="language-btn" onClick={() => setIsOpen(!isOpen)}>
-                <Globe size={14} />
-                <span>{current?.label}</span>
+        <div style={{ position: 'relative' }}>
+            <button onClick={() => setOpen(!open)} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '6px 12px', background: '#f5f5f5', borderRadius: 6, fontSize: 13 }}>
+                <Globe size={14} /> {langs.find(l => l.code === language)?.label}
             </button>
-            {isOpen && (
-                <div className="language-dropdown">
-                    {langs.map(lang => (
-                        <button
-                            key={lang.code}
-                            className={`language-option ${language === lang.code ? 'active' : ''}`}
-                            onClick={() => { setLanguage(lang.code); setIsOpen(false) }}
-                        >
-                            {lang.label}
+            {open && (
+                <div style={{ position: 'absolute', top: '100%', right: 0, background: '#fff', border: '1px solid #ddd', borderRadius: 8, overflow: 'hidden', zIndex: 100, marginTop: 4 }}>
+                    {langs.map(l => (
+                        <button key={l.code} onClick={() => { setLanguage(l.code); setOpen(false) }}
+                            style={{ display: 'block', width: '100%', padding: '10px 20px', textAlign: 'start', background: language === l.code ? '#C1272D' : '#fff', color: language === l.code ? '#fff' : '#333', border: 'none', cursor: 'pointer' }}>
+                            {l.label}
                         </button>
                     ))}
                 </div>
@@ -407,42 +140,25 @@ function LanguageSwitcher() {
     )
 }
 
-// Header
-function Header({ cartCount, onCartClick, onAdminClick }) {
-    const { t, language } = useLanguage()
-    const brandName = language === 'ar' ? 'متجر المغرب' : 'Maroc Boutique'
-
+// Header (NO seller button - hidden!)
+function Header({ onCartClick, cartCount }) {
+    const { t } = useApp()
     return (
-        <header className="header">
-            <div className="header-top">
-                <span>{t.freeShippingBanner}</span>
-            </div>
-            <div className="container">
-                <div className="header-content">
-                    <Link to="/" className="logo">
-                        <div className="logo-mark"></div>
-                        <span className="logo-text">{brandName}</span>
-                    </Link>
-
-                    <nav className="nav-links">
-                        <Link to="/" className="nav-link">{t.home}</Link>
-                        <a href="#categories" className="nav-link">{t.categories}</a>
-                        <a href="#products" className="nav-link">{t.products}</a>
-                        <a href="#about" className="nav-link">{t.about}</a>
-                    </nav>
-
-                    <div className="header-actions">
-                        <LanguageSwitcher />
-                        <button className="icon-btn"><Search size={20} /></button>
-                        <button className="icon-btn" onClick={onCartClick}>
-                            <ShoppingCart size={20} />
-                            {cartCount > 0 && <span className="cart-count">{cartCount}</span>}
-                        </button>
-                        <button className="seller-btn" onClick={onAdminClick}>
-                            <User size={16} /> {t.seller}
-                        </button>
-                        <button className="mobile-menu-btn"><Menu size={20} /></button>
+        <header style={{ position: 'sticky', top: 0, background: '#fff', borderBottom: '1px solid #eee', zIndex: 1000 }}>
+            <div style={{ background: '#1a1a1a', color: '#fff', padding: '8px 0', textAlign: 'center', fontSize: 13 }}>{t.freeShippingBanner}</div>
+            <div style={{ maxWidth: 1200, margin: '0 auto', padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ width: 36, height: 36, background: 'linear-gradient(135deg, #C1272D, #8B0000)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <span style={{ color: '#C9A227', fontSize: 16 }}>★</span>
                     </div>
+                    <span style={{ fontWeight: 700, fontSize: 18 }}>MarocBoutique</span>
+                </Link>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <LanguageSwitcher />
+                    <button onClick={onCartClick} style={{ width: 40, height: 40, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', background: 'transparent' }}>
+                        <ShoppingCart size={20} />
+                        {cartCount > 0 && <span style={{ position: 'absolute', top: 2, right: 2, width: 18, height: 18, background: '#C1272D', color: '#fff', borderRadius: '50%', fontSize: 11, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{cartCount}</span>}
+                    </button>
                 </div>
             </div>
         </header>
@@ -451,28 +167,14 @@ function Header({ cartCount, onCartClick, onAdminClick }) {
 
 // Hero
 function Hero() {
-    const { t, language } = useLanguage()
+    const { t } = useApp()
     return (
-        <section className="hero">
-            <div className="container">
-                <div className="hero-content">
-                    <div className="hero-text">
-                        <span className="hero-badge">{t.heroBadge}</span>
-                        <h1 className="hero-title">
-                            {t.heroTitle} <span>{t.heroTitleHighlight}</span>
-                        </h1>
-                        <p className="hero-description">{t.heroDescription}</p>
-                        <div className="hero-buttons">
-                            <a href="#products" className="btn btn-primary">
-                                {t.shopNow} <ArrowRight size={16} />
-                            </a>
-                            <a href="#categories" className="btn btn-secondary">{t.viewAll}</a>
-                        </div>
-                    </div>
-                    <div className="hero-image">
-                        <img src="https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=600" alt="Moroccan Fashion" />
-                    </div>
-                </div>
+        <section style={{ background: 'linear-gradient(135deg, #f8f8f8, #f0f0f0)', padding: '60px 16px' }}>
+            <div style={{ maxWidth: 1200, margin: '0 auto', textAlign: 'center' }}>
+                <span style={{ display: 'inline-block', background: 'rgba(193,39,45,0.1)', color: '#C1272D', padding: '6px 16px', borderRadius: 20, fontSize: 13, marginBottom: 16 }}>{t.heroBadge}</span>
+                <h1 style={{ fontSize: 'clamp(28px, 5vw, 48px)', fontWeight: 700, marginBottom: 16 }}>{t.heroTitle} <span style={{ color: '#C1272D' }}>{t.heroTitleHighlight}</span></h1>
+                <p style={{ color: '#666', maxWidth: 500, margin: '0 auto 24px', fontSize: 16 }}>{t.heroDescription}</p>
+                <a href="#products" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#1a1a1a', color: '#fff', padding: '12px 28px', borderRadius: 8, fontWeight: 500 }}>{t.shopNow} <ArrowRight size={16} /></a>
             </div>
         </section>
     )
@@ -480,20 +182,17 @@ function Hero() {
 
 // Categories
 function Categories() {
-    const { t } = useLanguage()
+    const { t } = useApp()
     return (
-        <section className="section" id="categories">
-            <div className="container">
-                <div className="section-header">
-                    <h2 className="section-title">{t.categories}</h2>
-                </div>
-                <div className="categories-grid">
+        <section style={{ padding: '48px 16px' }}>
+            <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+                <h2 style={{ textAlign: 'center', fontSize: 24, marginBottom: 32 }}>{t.categories}</h2>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 16 }}>
                     {categories.map((cat, i) => (
-                        <div key={i} className="category-card">
-                            <img src={cat.image} alt={t[cat.key]} />
-                            <div className="category-overlay">
-                                <span className="category-name">{t[cat.key]}</span>
-                                <span className="category-count">{cat.count} {t.productsCount}</span>
+                        <div key={i} style={{ position: 'relative', aspectRatio: '1', borderRadius: 12, overflow: 'hidden', cursor: 'pointer' }}>
+                            <img src={cat.image} alt={t[cat.key]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.7), transparent)', display: 'flex', alignItems: 'flex-end', padding: 16 }}>
+                                <span style={{ color: '#fff', fontWeight: 600 }}>{t[cat.key]}</span>
                             </div>
                         </div>
                     ))}
@@ -504,28 +203,24 @@ function Categories() {
 }
 
 // Product Card
-function ProductCard({ product, onAddToCart }) {
-    const { t, language } = useLanguage()
-    const name = typeof product.name === 'object' ? product.name[language] : product.name
-    const category = t[product.category] || product.category
-    const badge = product.badge ? t[product.badge] : null
-
+function ProductCard({ product, onAdd }) {
+    const { t, language } = useApp()
+    const name = product.name[language] || product.name.en
     return (
-        <div className="product-card">
-            <div className="product-image">
-                <img src={product.image} alt={name} />
-                {badge && <span className={`product-badge badge-${product.badge}`}>{badge}</span>}
-                <button className="product-wishlist"><Heart size={16} /></button>
+        <div style={{ background: '#fff', borderRadius: 12, overflow: 'hidden', border: '1px solid #eee' }}>
+            <div style={{ position: 'relative', aspectRatio: '1' }}>
+                <img src={product.image} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                {product.badge && <span style={{ position: 'absolute', top: 8, left: 8, background: product.badge === 'sale' ? '#C1272D' : product.badge === 'new' ? '#1a1a1a' : '#C9A227', color: '#fff', padding: '2px 8px', borderRadius: 4, fontSize: 11, fontWeight: 600 }}>{t[product.badge]}</span>}
             </div>
-            <div className="product-info">
-                <span className="product-category">{category}</span>
-                <h3 className="product-name">{name}</h3>
-                <div className="product-price">
-                    <span className="price-current">${product.price}</span>
-                    {product.originalPrice && <span className="price-original">${product.originalPrice}</span>}
+            <div style={{ padding: 12 }}>
+                <p style={{ fontSize: 11, color: '#888', textTransform: 'uppercase', marginBottom: 4 }}>{t[product.category]}</p>
+                <h3 style={{ fontSize: 14, fontWeight: 500, marginBottom: 8 }}>{name}</h3>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                    <span style={{ fontWeight: 700, color: '#1a1a1a' }}>${product.price}</span>
+                    {product.originalPrice && <span style={{ color: '#999', textDecoration: 'line-through', fontSize: 13 }}>${product.originalPrice}</span>}
                 </div>
-                <button className="add-to-cart-btn" onClick={() => onAddToCart(product)}>
-                    <ShoppingCart size={16} /> {t.addToCart}
+                <button onClick={() => onAdd(product)} style={{ width: '100%', padding: 10, background: '#1a1a1a', color: '#fff', borderRadius: 6, fontWeight: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, border: 'none', cursor: 'pointer' }}>
+                    <ShoppingCart size={14} /> {t.addToCart}
                 </button>
             </div>
         </div>
@@ -533,33 +228,24 @@ function ProductCard({ product, onAddToCart }) {
 }
 
 // Products
-function Products({ products, onAddToCart }) {
-    const { t } = useLanguage()
+function Products({ products, onAdd }) {
+    const { t } = useApp()
     const [filter, setFilter] = useState('all')
-    const filters = ['all', 'kaftans', 'djellabas', 'shoes', 'dresses', 'tunics']
+    const filters = ['all', 'kaftans', 'djellabas', 'shoes', 'dresses']
     const filtered = filter === 'all' ? products : products.filter(p => p.category === filter)
-
     return (
-        <section className="section" id="products">
-            <div className="container">
-                <div className="products-header">
-                    <div className="section-header" style={{ marginBottom: 0, textAlign: 'start' }}>
-                        <h2 className="section-title">{t.featuredProducts}</h2>
-                    </div>
-                    <div className="products-filters">
-                        {filters.map(f => (
-                            <button
-                                key={f}
-                                className={`filter-btn ${filter === f ? 'active' : ''}`}
-                                onClick={() => setFilter(f)}
-                            >
-                                {f === 'all' ? t.all : t[f]}
-                            </button>
-                        ))}
-                    </div>
+        <section id="products" style={{ padding: '48px 16px', background: '#fafafa' }}>
+            <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+                <h2 style={{ fontSize: 24, marginBottom: 24 }}>{t.featuredProducts}</h2>
+                <div style={{ display: 'flex', gap: 8, marginBottom: 24, flexWrap: 'wrap' }}>
+                    {filters.map(f => (
+                        <button key={f} onClick={() => setFilter(f)} style={{ padding: '8px 16px', borderRadius: 20, border: '1px solid #ddd', background: filter === f ? '#1a1a1a' : '#fff', color: filter === f ? '#fff' : '#333', cursor: 'pointer', fontSize: 13 }}>
+                            {f === 'all' ? t.all : t[f]}
+                        </button>
+                    ))}
                 </div>
-                <div className="products-grid">
-                    {filtered.map(p => <ProductCard key={p.id} product={p} onAddToCart={onAddToCart} />)}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 16 }}>
+                    {filtered.map(p => <ProductCard key={p.id} product={p} onAdd={onAdd} />)}
                 </div>
             </div>
         </section>
@@ -568,54 +254,22 @@ function Products({ products, onAddToCart }) {
 
 // Features
 function Features() {
-    const { t } = useLanguage()
+    const { t } = useApp()
     const items = [
-        { icon: <Truck size={20} />, title: t.freeShipping, desc: t.freeShippingDesc },
-        { icon: <Shield size={20} />, title: t.securePayment, desc: t.securePaymentDesc },
-        { icon: <Headphones size={20} />, title: t.support247, desc: t.support247Desc },
-        { icon: <Package size={20} />, title: t.easyReturns, desc: t.easyReturnsDesc }
+        { icon: <Truck size={20} />, title: t.freeShipping },
+        { icon: <Shield size={20} />, title: t.securePayment },
+        { icon: <Headphones size={20} />, title: t.support247 },
+        { icon: <Package size={20} />, title: t.easyReturns }
     ]
     return (
-        <section className="section features" id="about">
-            <div className="container">
-                <div className="features-grid">
-                    {items.map((item, i) => (
-                        <div key={i} className="feature-card">
-                            <div className="feature-icon">{item.icon}</div>
-                            <h3 className="feature-title">{item.title}</h3>
-                            <p className="feature-description">{item.desc}</p>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        </section>
-    )
-}
-
-// Newsletter
-function Newsletter() {
-    const { t } = useLanguage()
-    const [email, setEmail] = useState('')
-    const handleSubmit = (e) => { e.preventDefault(); alert(t.thankYou); setEmail('') }
-
-    return (
-        <section className="newsletter">
-            <div className="container">
-                <div className="newsletter-content">
-                    <h3>{t.newsletter}</h3>
-                    <p>{t.newsletterDesc}</p>
-                    <form className="newsletter-form" onSubmit={handleSubmit}>
-                        <input
-                            type="email"
-                            className="newsletter-input"
-                            placeholder={t.emailPlaceholder}
-                            value={email}
-                            onChange={e => setEmail(e.target.value)}
-                            required
-                        />
-                        <button type="submit" className="newsletter-btn">{t.subscribe}</button>
-                    </form>
-                </div>
+        <section style={{ padding: '48px 16px', borderTop: '1px solid #eee' }}>
+            <div style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 24 }}>
+                {items.map((item, i) => (
+                    <div key={i} style={{ textAlign: 'center' }}>
+                        <div style={{ width: 48, height: 48, background: '#f5f5f5', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>{item.icon}</div>
+                        <p style={{ fontWeight: 500, fontSize: 14 }}>{item.title}</p>
+                    </div>
+                ))}
             </div>
         </section>
     )
@@ -623,182 +277,98 @@ function Newsletter() {
 
 // Footer
 function Footer() {
-    const { t, language } = useLanguage()
-    const brandName = language === 'ar' ? 'متجر المغرب' : 'Maroc Boutique'
-
     return (
-        <footer className="footer">
-            <div className="container">
-                <div className="footer-grid">
-                    <div className="footer-brand">
-                        <div className="logo">
-                            <div className="logo-mark"></div>
-                            <span className="logo-text" style={{ color: 'white' }}>{brandName}</span>
-                        </div>
-                        <p>{t.footerDescription}</p>
-                        <div className="social-links">
-                            <a href="#" className="social-link"><Instagram size={18} /></a>
-                            <a href="#" className="social-link"><Facebook size={18} /></a>
-                            <a href="#" className="social-link"><Twitter size={18} /></a>
-                        </div>
-                    </div>
-                    <div className="footer-column">
-                        <h4>{t.shop}</h4>
-                        <ul className="footer-links">
-                            <li><a href="#">{t.kaftans}</a></li>
-                            <li><a href="#">{t.djellabas}</a></li>
-                            <li><a href="#">{t.shoes}</a></li>
-                        </ul>
-                    </div>
-                    <div className="footer-column">
-                        <h4>{t.help}</h4>
-                        <ul className="footer-links">
-                            <li><a href="#">{t.faq}</a></li>
-                            <li><a href="#">{t.shipping}</a></li>
-                            <li><a href="#">{t.returns}</a></li>
-                        </ul>
-                    </div>
-                    <div className="footer-column">
-                        <h4>{t.contact}</h4>
-                        <ul className="footer-links">
-                            <li><a href="#">{t.aboutUs}</a></li>
-                            <li><a href="#">{t.careers}</a></li>
-                            <li><a href="#">{t.press}</a></li>
-                        </ul>
-                    </div>
+        <footer style={{ background: '#1a1a1a', color: '#fff', padding: '48px 16px 24px' }}>
+            <div style={{ maxWidth: 1200, margin: '0 auto', textAlign: 'center' }}>
+                <div style={{ display: 'flex', justifyContent: 'center', gap: 16, marginBottom: 24 }}>
+                    <a href="#" style={{ width: 36, height: 36, background: 'rgba(255,255,255,0.1)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}><Instagram size={18} /></a>
+                    <a href="#" style={{ width: 36, height: 36, background: 'rgba(255,255,255,0.1)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}><Facebook size={18} /></a>
+                    <a href="#" style={{ width: 36, height: 36, background: 'rgba(255,255,255,0.1)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}><Twitter size={18} /></a>
                 </div>
-                <div className="footer-bottom">
-                    <p>© 2024 {brandName}. {t.allRights}</p>
-                    <div className="payment-methods">
-                        <span className="payment-icon">VISA</span>
-                        <span className="payment-icon">MC</span>
-                        <span className="payment-icon">PAYPAL</span>
-                    </div>
-                </div>
+                <p style={{ color: '#888', fontSize: 13 }}>© 2024 MarocBoutique. All rights reserved.</p>
             </div>
         </footer>
     )
 }
 
-// Cart Sidebar with Checkout
-function CartSidebar({ isOpen, onClose, cart, updateQuantity, removeFromCart, clearCart }) {
-    const { t, language } = useLanguage()
-    const [showCheckout, setShowCheckout] = useState(false)
-    const [customerInfo, setCustomerInfo] = useState({ name: '', phone: '', address: '', city: '' })
-    const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
-    const getName = (p) => typeof p.name === 'object' ? p.name[language] : p.name
+// Cart Sidebar
+function CartSidebar({ isOpen, onClose, cart, updateQty, remove, clear }) {
+    const { t, language } = useApp()
+    const [checkout, setCheckout] = useState(false)
+    const [info, setInfo] = useState({ name: '', phone: '', city: '', address: '' })
+    const total = cart.reduce((s, i) => s + i.price * i.qty, 0)
+    const getName = p => p.name[language] || p.name.en
 
-    const handleCheckout = (e) => {
+    const sendOrder = (e) => {
         e.preventDefault()
-        // Build WhatsApp message
-        let msg = language === 'ar' ? '🛒 *طلب جديد*\n\n' : '🛒 *New Order*\n\n'
-        msg += language === 'ar' ? '*المنتجات:*\n' : '*Products:*\n'
-        cart.forEach(item => {
-            msg += `• ${getName(item)} x${item.quantity} - $${item.price * item.quantity}\n`
-        })
-        msg += `\n${language === 'ar' ? '*المجموع:*' : '*Total:*'} $${total.toFixed(2)}\n\n`
-        msg += language === 'ar' ? '*معلومات العميل:*\n' : '*Customer Info:*\n'
-        msg += `${language === 'ar' ? 'الاسم' : 'Name'}: ${customerInfo.name}\n`
-        msg += `${language === 'ar' ? 'الهاتف' : 'Phone'}: ${customerInfo.phone}\n`
-        msg += `${language === 'ar' ? 'المدينة' : 'City'}: ${customerInfo.city}\n`
-        msg += `${language === 'ar' ? 'العنوان' : 'Address'}: ${customerInfo.address}`
-
-        // Open WhatsApp (replace with your number)
-        const whatsappNumber = '212600000000' // Change to seller's WhatsApp
-        window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(msg)}`, '_blank')
-        clearCart()
-        setShowCheckout(false)
+        let msg = `🛒 *New Order*\n\n`
+        cart.forEach(i => { msg += `• ${getName(i)} x${i.qty} - $${i.price * i.qty}\n` })
+        msg += `\n*Total:* $${total}\n\n*Customer:*\n${info.name}\n${info.phone}\n${info.city}\n${info.address}`
+        window.open(`https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(msg)}`, '_blank')
+        clear()
+        setCheckout(false)
         onClose()
     }
 
+    if (!isOpen) return null
     return (
-        <div className={`cart-overlay ${isOpen ? 'open' : ''}`} onClick={onClose}>
-            <div className="cart-sidebar" onClick={e => e.stopPropagation()}>
-                <div className="cart-header">
-                    <h3>{showCheckout ? (language === 'ar' ? 'إتمام الطلب' : 'Checkout') : t.shoppingCart} ({cart.length})</h3>
-                    <button className="cart-close" onClick={onClose}><X size={20} /></button>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 2000 }}>
+            <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)' }} onClick={onClose} />
+            <div style={{ position: 'absolute', top: 0, right: 0, width: '100%', maxWidth: 400, height: '100%', background: '#fff', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ padding: 16, borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h3 style={{ fontWeight: 600 }}>{checkout ? t.checkout : t.shoppingCart}</h3>
+                    <button onClick={onClose} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}><X size={20} /></button>
                 </div>
-
-                {!showCheckout ? (
+                {!checkout ? (
                     <>
-                        <div className="cart-items">
+                        <div style={{ flex: 1, overflow: 'auto', padding: 16 }}>
                             {cart.length === 0 ? (
-                                <div className="cart-empty">
-                                    <ShoppingCart size={40} />
-                                    <p>{t.cartEmpty}</p>
-                                </div>
-                            ) : (
-                                cart.map(item => (
-                                    <div key={item.id} className="cart-item">
-                                        <div className="cart-item-image">
-                                            <img src={item.image} alt={getName(item)} />
+                                <div style={{ textAlign: 'center', padding: 48, color: '#999' }}><ShoppingCart size={40} /><p style={{ marginTop: 16 }}>{t.cartEmpty}</p></div>
+                            ) : cart.map(i => (
+                                <div key={i.id} style={{ display: 'flex', gap: 12, padding: '12px 0', borderBottom: '1px solid #f5f5f5' }}>
+                                    <img src={i.image} alt="" style={{ width: 60, height: 60, objectFit: 'cover', borderRadius: 8 }} />
+                                    <div style={{ flex: 1 }}>
+                                        <p style={{ fontWeight: 500, fontSize: 14 }}>{getName(i)}</p>
+                                        <p style={{ color: '#666', fontSize: 13 }}>${i.price}</p>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+                                            <button onClick={() => updateQty(i.id, i.qty - 1)} style={{ width: 24, height: 24, background: '#f5f5f5', borderRadius: 4, border: 'none', cursor: 'pointer' }}><Minus size={12} /></button>
+                                            <span>{i.qty}</span>
+                                            <button onClick={() => updateQty(i.id, i.qty + 1)} style={{ width: 24, height: 24, background: '#f5f5f5', borderRadius: 4, border: 'none', cursor: 'pointer' }}><Plus size={12} /></button>
                                         </div>
-                                        <div className="cart-item-info">
-                                            <h4 className="cart-item-name">{getName(item)}</h4>
-                                            <p className="cart-item-price">${item.price}</p>
-                                            <div className="cart-item-quantity">
-                                                <button className="qty-btn" onClick={() => updateQuantity(item.id, item.quantity - 1)}><Minus size={12} /></button>
-                                                <span>{item.quantity}</span>
-                                                <button className="qty-btn" onClick={() => updateQuantity(item.id, item.quantity + 1)}><Plus size={12} /></button>
-                                            </div>
-                                        </div>
-                                        <button className="cart-item-remove" onClick={() => removeFromCart(item.id)}><Trash2 size={16} /></button>
                                     </div>
-                                ))
-                            )}
+                                    <button onClick={() => remove(i.id)} style={{ background: 'transparent', border: 'none', color: '#999', cursor: 'pointer' }}><Trash2 size={16} /></button>
+                                </div>
+                            ))}
                         </div>
                         {cart.length > 0 && (
-                            <div className="cart-footer">
-                                <div className="cart-total">
-                                    <span>{t.total}</span>
-                                    <span>${total.toFixed(2)}</span>
-                                </div>
-                                <button className="checkout-btn" onClick={() => setShowCheckout(true)}>
-                                    {t.checkout}
-                                </button>
+                            <div style={{ padding: 16, borderTop: '1px solid #eee', background: '#fafafa' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16, fontWeight: 600 }}><span>{t.total}</span><span>${total}</span></div>
+                                <button onClick={() => setCheckout(true)} style={{ width: '100%', padding: 14, background: '#1a1a1a', color: '#fff', borderRadius: 8, fontWeight: 500, border: 'none', cursor: 'pointer' }}>{t.checkout}</button>
                             </div>
                         )}
                     </>
                 ) : (
-                    <form onSubmit={handleCheckout} style={{ padding: '16px', display: 'flex', flexDirection: 'column', height: 'calc(100% - 60px)' }}>
-                        <div style={{ flex: 1, overflowY: 'auto' }}>
-                            <div className="form-group">
-                                <label>{language === 'ar' ? 'الاسم الكامل' : 'Full Name'}</label>
-                                <input type="text" required value={customerInfo.name} onChange={e => setCustomerInfo({ ...customerInfo, name: e.target.value })} />
-                            </div>
-                            <div className="form-group">
-                                <label>{language === 'ar' ? 'رقم الهاتف' : 'Phone Number'}</label>
-                                <input type="tel" required value={customerInfo.phone} onChange={e => setCustomerInfo({ ...customerInfo, phone: e.target.value })} />
-                            </div>
-                            <div className="form-group">
-                                <label>{language === 'ar' ? 'المدينة' : 'City'}</label>
-                                <input type="text" required value={customerInfo.city} onChange={e => setCustomerInfo({ ...customerInfo, city: e.target.value })} />
-                            </div>
-                            <div className="form-group">
-                                <label>{language === 'ar' ? 'العنوان' : 'Address'}</label>
-                                <textarea required value={customerInfo.address} onChange={e => setCustomerInfo({ ...customerInfo, address: e.target.value })} />
-                            </div>
-                            <div style={{ background: '#f5f5f5', padding: '12px', borderRadius: '8px', marginTop: '16px' }}>
-                                <p style={{ fontSize: '14px', marginBottom: '8px' }}>{language === 'ar' ? 'ملخص الطلب:' : 'Order Summary:'}</p>
-                                {cart.map(item => (
-                                    <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
-                                        <span>{getName(item)} x{item.quantity}</span>
-                                        <span>${item.price * item.quantity}</span>
-                                    </div>
-                                ))}
-                                <div style={{ borderTop: '1px solid #ddd', marginTop: '8px', paddingTop: '8px', fontWeight: 'bold', display: 'flex', justifyContent: 'space-between' }}>
-                                    <span>{t.total}</span>
-                                    <span>${total.toFixed(2)}</span>
+                    <form onSubmit={sendOrder} style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: 16 }}>
+                        <div style={{ flex: 1 }}>
+                            {['name', 'phone', 'city', 'address'].map(f => (
+                                <div key={f} style={{ marginBottom: 16 }}>
+                                    <label style={{ display: 'block', marginBottom: 4, fontWeight: 500, fontSize: 14 }}>{t[f === 'name' ? 'customerName' : f]}</label>
+                                    {f === 'address' ? (
+                                        <textarea required value={info[f]} onChange={e => setInfo({ ...info, [f]: e.target.value })} style={{ width: '100%', padding: 12, border: '1px solid #ddd', borderRadius: 8, resize: 'none', height: 80 }} />
+                                    ) : (
+                                        <input required type={f === 'phone' ? 'tel' : 'text'} value={info[f]} onChange={e => setInfo({ ...info, [f]: e.target.value })} style={{ width: '100%', padding: 12, border: '1px solid #ddd', borderRadius: 8 }} />
+                                    )}
                                 </div>
+                            ))}
+                            <div style={{ background: '#f5f5f5', padding: 12, borderRadius: 8 }}>
+                                <p style={{ fontWeight: 500, marginBottom: 8 }}>{t.orderSummary}</p>
+                                {cart.map(i => <div key={i.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}><span>{getName(i)} x{i.qty}</span><span>${i.price * i.qty}</span></div>)}
+                                <div style={{ borderTop: '1px solid #ddd', marginTop: 8, paddingTop: 8, fontWeight: 600, display: 'flex', justifyContent: 'space-between' }}><span>{t.total}</span><span>${total}</span></div>
                             </div>
                         </div>
-                        <div style={{ marginTop: '16px' }}>
-                            <button type="button" onClick={() => setShowCheckout(false)} style={{ width: '100%', padding: '12px', marginBottom: '8px', background: '#eee', borderRadius: '6px', fontWeight: 500 }}>
-                                {language === 'ar' ? '← العودة' : '← Back'}
-                            </button>
-                            <button type="submit" className="checkout-btn" style={{ background: '#25D366' }}>
-                                {language === 'ar' ? '📱 أرسل الطلب عبر واتساب' : '📱 Send Order via WhatsApp'}
-                            </button>
+                        <div style={{ marginTop: 16 }}>
+                            <button type="button" onClick={() => setCheckout(false)} style={{ width: '100%', padding: 12, marginBottom: 8, background: '#eee', borderRadius: 8, border: 'none', cursor: 'pointer' }}>{t.back}</button>
+                            <button type="submit" style={{ width: '100%', padding: 14, background: '#25D366', color: '#fff', borderRadius: 8, fontWeight: 500, border: 'none', cursor: 'pointer' }}>📱 {t.sendWhatsApp}</button>
                         </div>
                     </form>
                 )}
@@ -807,114 +377,120 @@ function CartSidebar({ isOpen, onClose, cart, updateQuantity, removeFromCart, cl
     )
 }
 
-// Admin Panel
-function AdminPanel({ products, onAddProduct, onEditProduct, onDeleteProduct, onBack }) {
-    const { t, language } = useLanguage()
-    const [isModalOpen, setIsModalOpen] = useState(false)
-    const [editingProduct, setEditingProduct] = useState(null)
-    const [formData, setFormData] = useState({
-        name: '', category: 'kaftans', price: '', originalPrice: '', image: '', description: '', badge: ''
-    })
-
-    const getName = (p) => typeof p.name === 'object' ? p.name[language] : p.name
-
-    const openAddModal = () => {
-        setEditingProduct(null)
-        setFormData({ name: '', category: 'kaftans', price: '', originalPrice: '', image: '', description: '', badge: '' })
-        setIsModalOpen(true)
-    }
-
-    const openEditModal = (product) => {
-        setEditingProduct(product)
-        setFormData({
-            name: getName(product),
-            category: product.category,
-            price: product.price.toString(),
-            originalPrice: product.originalPrice?.toString() || '',
-            image: product.image,
-            description: typeof product.description === 'object' ? product.description[language] : product.description,
-            badge: product.badge || ''
-        })
-        setIsModalOpen(true)
-    }
-
-    const handleSubmit = (e) => {
+// ========================================
+// ADMIN PANEL (Hidden at secret URL)
+// ========================================
+function AdminLogin({ onLogin }) {
+    const { t } = useApp()
+    const [pwd, setPwd] = useState('')
+    const [error, setError] = useState(false)
+    const handleLogin = (e) => {
         e.preventDefault()
-        const data = {
-            name: { ar: formData.name, fr: formData.name, en: formData.name },
-            category: formData.category,
-            price: parseFloat(formData.price),
-            originalPrice: formData.originalPrice ? parseFloat(formData.originalPrice) : null,
-            image: formData.image,
-            description: { ar: formData.description, fr: formData.description, en: formData.description },
-            badge: formData.badge || null
-        }
-        if (editingProduct) {
-            onEditProduct({ ...data, id: editingProduct.id })
+        if (pwd === CONFIG.adminPassword) {
+            sessionStorage.setItem('admin_auth', 'true')
+            onLogin()
         } else {
-            onAddProduct({ ...data, id: Date.now() })
+            setError(true)
         }
-        setIsModalOpen(false)
+    }
+    return (
+        <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f5f5f5' }}>
+            <form onSubmit={handleLogin} style={{ background: '#fff', padding: 32, borderRadius: 12, width: '100%', maxWidth: 360, boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}>
+                <div style={{ textAlign: 'center', marginBottom: 24 }}>
+                    <Lock size={40} color="#C1272D" />
+                    <h2 style={{ marginTop: 12 }}>{t.adminLogin}</h2>
+                </div>
+                <input type="password" placeholder={t.password} value={pwd} onChange={e => { setPwd(e.target.value); setError(false) }}
+                    style={{ width: '100%', padding: 14, border: `1px solid ${error ? '#C1272D' : '#ddd'}`, borderRadius: 8, marginBottom: 16, fontSize: 16 }} />
+                {error && <p style={{ color: '#C1272D', fontSize: 13, marginBottom: 12 }}>{t.wrongPassword}</p>}
+                <button type="submit" style={{ width: '100%', padding: 14, background: '#1a1a1a', color: '#fff', borderRadius: 8, fontWeight: 500, border: 'none', cursor: 'pointer' }}>{t.login}</button>
+            </form>
+        </div>
+    )
+}
+
+function AdminPanel({ products, setProducts }) {
+    const { t, language } = useApp()
+    const navigate = useNavigate()
+    const [editing, setEditing] = useState(null)
+    const [form, setForm] = useState({ name: '', category: 'kaftans', price: '', originalPrice: '', image: '', badge: '' })
+
+    const logout = () => { sessionStorage.removeItem('admin_auth'); navigate('/') }
+    const getName = p => p.name[language] || p.name.en
+
+    const openAdd = () => {
+        setForm({ name: '', category: 'kaftans', price: '', originalPrice: '', image: '', badge: '' })
+        setEditing('new')
+    }
+    const openEdit = (p) => {
+        setForm({ name: getName(p), category: p.category, price: p.price.toString(), originalPrice: p.originalPrice?.toString() || '', image: p.image, badge: p.badge || '' })
+        setEditing(p.id)
+    }
+    const save = () => {
+        const data = {
+            id: editing === 'new' ? Date.now() : editing,
+            name: { ar: form.name, fr: form.name, en: form.name },
+            category: form.category,
+            price: parseFloat(form.price),
+            originalPrice: form.originalPrice ? parseFloat(form.originalPrice) : null,
+            image: form.image,
+            badge: form.badge || null
+        }
+        let newProducts
+        if (editing === 'new') {
+            newProducts = [...products, data]
+        } else {
+            newProducts = products.map(p => p.id === editing ? data : p)
+        }
+        setProducts(newProducts)
+        saveProducts(newProducts)
+        setEditing(null)
+    }
+    const del = (id) => {
+        if (confirm(t.delete + '?')) {
+            const newProducts = products.filter(p => p.id !== id)
+            setProducts(newProducts)
+            saveProducts(newProducts)
+        }
     }
 
     return (
-        <div className="admin-page">
-            <div className="admin-container">
-                <div className="admin-header">
-                    <div>
-                        <button className="back-btn" onClick={onBack}>← {t.backToStore}</button>
-                        <h1>{t.sellerDashboard}</h1>
-                    </div>
-                    <button className="btn btn-primary" onClick={openAddModal}>
-                        <Plus size={16} /> {t.addProduct}
-                    </button>
-                </div>
-
-                <div className="admin-stats">
-                    <div className="admin-stat-card">
-                        <h3>{t.totalProducts}</h3>
-                        <div className="value">{products.length}</div>
-                    </div>
-                    <div className="admin-stat-card">
-                        <h3>{t.totalValue}</h3>
-                        <div className="value">${products.reduce((s, p) => s + p.price, 0)}</div>
-                    </div>
-                    <div className="admin-stat-card">
-                        <h3>{t.categories}</h3>
-                        <div className="value">{[...new Set(products.map(p => p.category))].length}</div>
-                    </div>
-                    <div className="admin-stat-card">
-                        <h3>{t.onSale}</h3>
-                        <div className="value">{products.filter(p => p.originalPrice).length}</div>
+        <div style={{ minHeight: '100vh', background: '#f5f5f5', padding: 16 }}>
+            <div style={{ maxWidth: 900, margin: '0 auto' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+                    <h1 style={{ fontSize: 24 }}>{t.dashboard}</h1>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                        <button onClick={openAdd} style={{ padding: '10px 20px', background: '#C1272D', color: '#fff', borderRadius: 8, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}><Plus size={16} /> {t.addProduct}</button>
+                        <button onClick={logout} style={{ padding: '10px 20px', background: '#333', color: '#fff', borderRadius: 8, border: 'none', cursor: 'pointer' }}>{t.logout}</button>
                     </div>
                 </div>
 
-                <div className="admin-section">
-                    <div className="admin-section-header">
-                        <h2>{t.allProducts}</h2>
-                    </div>
-                    <table className="admin-table">
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 16, marginBottom: 24 }}>
+                    <div style={{ background: '#fff', padding: 20, borderRadius: 12 }}><p style={{ color: '#888', fontSize: 13 }}>{t.totalProducts}</p><p style={{ fontSize: 28, fontWeight: 700 }}>{products.length}</p></div>
+                    <div style={{ background: '#fff', padding: 20, borderRadius: 12 }}><p style={{ color: '#888', fontSize: 13 }}>{t.totalValue}</p><p style={{ fontSize: 28, fontWeight: 700 }}>${products.reduce((s, p) => s + p.price, 0)}</p></div>
+                </div>
+
+                <div style={{ background: '#fff', borderRadius: 12, overflow: 'hidden' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                         <thead>
-                            <tr>
-                                <th>{t.image}</th>
-                                <th>{t.name}</th>
-                                <th>{t.category}</th>
-                                <th>{t.price}</th>
-                                <th>{t.actions}</th>
+                            <tr style={{ background: '#f9f9f9' }}>
+                                <th style={{ padding: 12, textAlign: 'start', fontSize: 13 }}>Image</th>
+                                <th style={{ padding: 12, textAlign: 'start', fontSize: 13 }}>{t.productName}</th>
+                                <th style={{ padding: 12, textAlign: 'start', fontSize: 13 }}>{t.category}</th>
+                                <th style={{ padding: 12, textAlign: 'start', fontSize: 13 }}>{t.price}</th>
+                                <th style={{ padding: 12, textAlign: 'start', fontSize: 13 }}>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {products.map(p => (
-                                <tr key={p.id}>
-                                    <td><img src={p.image} alt={getName(p)} /></td>
-                                    <td>{getName(p)}</td>
-                                    <td>{t[p.category]}</td>
-                                    <td>${p.price}</td>
-                                    <td>
-                                        <div className="admin-actions">
-                                            <button className="admin-action-btn edit" onClick={() => openEditModal(p)}><Edit size={14} /></button>
-                                            <button className="admin-action-btn delete" onClick={() => onDeleteProduct(p.id)}><Trash2 size={14} /></button>
-                                        </div>
+                                <tr key={p.id} style={{ borderTop: '1px solid #f0f0f0' }}>
+                                    <td style={{ padding: 12 }}><img src={p.image} alt="" style={{ width: 50, height: 50, objectFit: 'cover', borderRadius: 6 }} /></td>
+                                    <td style={{ padding: 12 }}>{getName(p)}</td>
+                                    <td style={{ padding: 12 }}>{t[p.category]}</td>
+                                    <td style={{ padding: 12 }}>${p.price}</td>
+                                    <td style={{ padding: 12 }}>
+                                        <button onClick={() => openEdit(p)} style={{ width: 32, height: 32, background: 'rgba(0,128,0,0.1)', color: 'green', borderRadius: 6, border: 'none', cursor: 'pointer', marginRight: 8 }}><Edit size={14} /></button>
+                                        <button onClick={() => del(p.id)} style={{ width: 32, height: 32, background: 'rgba(193,39,45,0.1)', color: '#C1272D', borderRadius: 6, border: 'none', cursor: 'pointer' }}><Trash2 size={14} /></button>
                                     </td>
                                 </tr>
                             ))}
@@ -923,153 +499,117 @@ function AdminPanel({ products, onAddProduct, onEditProduct, onDeleteProduct, on
                 </div>
             </div>
 
-            <div className={`modal-overlay ${isModalOpen ? 'open' : ''}`} onClick={() => setIsModalOpen(false)}>
-                <div className="modal" onClick={e => e.stopPropagation()}>
-                    <div className="modal-header">
-                        <h3>{editingProduct ? t.editProduct : t.addNewProduct}</h3>
-                        <button className="modal-close" onClick={() => setIsModalOpen(false)}><X size={18} /></button>
-                    </div>
-                    <form onSubmit={handleSubmit}>
-                        <div className="modal-body">
-                            <div className="form-group">
-                                <label>{t.productName}</label>
-                                <input type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} required />
+            {editing && (
+                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+                    <div style={{ background: '#fff', borderRadius: 12, width: '100%', maxWidth: 450, maxHeight: '90vh', overflow: 'auto' }}>
+                        <div style={{ padding: 16, borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between' }}>
+                            <h3>{editing === 'new' ? t.addProduct : t.edit}</h3>
+                            <button onClick={() => setEditing(null)} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}><X size={20} /></button>
+                        </div>
+                        <div style={{ padding: 16 }}>
+                            <div style={{ marginBottom: 16 }}>
+                                <label style={{ display: 'block', marginBottom: 4, fontWeight: 500 }}>{t.productName}</label>
+                                <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} style={{ width: '100%', padding: 12, border: '1px solid #ddd', borderRadius: 8 }} />
                             </div>
-                            <div className="form-row">
-                                <div className="form-group">
-                                    <label>{t.category}</label>
-                                    <select value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })}>
-                                        <option value="kaftans">{t.kaftans}</option>
-                                        <option value="djellabas">{t.djellabas}</option>
-                                        <option value="shoes">{t.shoes}</option>
-                                        <option value="dresses">{t.dresses}</option>
-                                        <option value="tunics">{t.tunics}</option>
-                                        <option value="accessories">{t.accessories}</option>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: 4, fontWeight: 500 }}>{t.category}</label>
+                                    <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} style={{ width: '100%', padding: 12, border: '1px solid #ddd', borderRadius: 8 }}>
+                                        {['kaftans', 'djellabas', 'shoes', 'dresses', 'tunics', 'accessories'].map(c => <option key={c} value={c}>{t[c]}</option>)}
                                     </select>
                                 </div>
-                                <div className="form-group">
-                                    <label>{t.badge}</label>
-                                    <select value={formData.badge} onChange={e => setFormData({ ...formData, badge: e.target.value })}>
-                                        <option value="">{t.none}</option>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: 4, fontWeight: 500 }}>Badge</label>
+                                    <select value={form.badge} onChange={e => setForm({ ...form, badge: e.target.value })} style={{ width: '100%', padding: 12, border: '1px solid #ddd', borderRadius: 8 }}>
+                                        <option value="">None</option>
                                         <option value="new">{t.new}</option>
                                         <option value="sale">{t.sale}</option>
                                         <option value="hot">{t.hot}</option>
                                     </select>
                                 </div>
                             </div>
-                            <div className="form-row">
-                                <div className="form-group">
-                                    <label>{t.price} ($)</label>
-                                    <input type="number" value={formData.price} onChange={e => setFormData({ ...formData, price: e.target.value })} required />
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: 4, fontWeight: 500 }}>{t.price} ($)</label>
+                                    <input type="number" value={form.price} onChange={e => setForm({ ...form, price: e.target.value })} style={{ width: '100%', padding: 12, border: '1px solid #ddd', borderRadius: 8 }} />
                                 </div>
-                                <div className="form-group">
-                                    <label>{t.originalPrice}</label>
-                                    <input type="number" value={formData.originalPrice} onChange={e => setFormData({ ...formData, originalPrice: e.target.value })} />
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: 4, fontWeight: 500 }}>Original Price</label>
+                                    <input type="number" value={form.originalPrice} onChange={e => setForm({ ...form, originalPrice: e.target.value })} style={{ width: '100%', padding: 12, border: '1px solid #ddd', borderRadius: 8 }} />
                                 </div>
                             </div>
-                            <div className="form-group">
-                                <label>{t.imageUrl}</label>
-                                <input type="url" value={formData.image} onChange={e => setFormData({ ...formData, image: e.target.value })} required />
-                            </div>
-                            <div className="form-group">
-                                <label>{t.description}</label>
-                                <textarea value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} />
+                            <div style={{ marginBottom: 16 }}>
+                                <label style={{ display: 'block', marginBottom: 4, fontWeight: 500 }}>{t.imageUrl}</label>
+                                <input value={form.image} onChange={e => setForm({ ...form, image: e.target.value })} style={{ width: '100%', padding: 12, border: '1px solid #ddd', borderRadius: 8 }} placeholder="https://..." />
                             </div>
                         </div>
-                        <div className="modal-footer">
-                            <button type="button" className="btn-cancel" onClick={() => setIsModalOpen(false)}>{t.cancel}</button>
-                            <button type="submit" className="btn-save">{editingProduct ? t.update : t.save}</button>
+                        <div style={{ padding: 16, borderTop: '1px solid #eee', display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                            <button onClick={() => setEditing(null)} style={{ padding: '10px 20px', background: '#eee', borderRadius: 8, border: 'none', cursor: 'pointer' }}>{t.cancel}</button>
+                            <button onClick={save} style={{ padding: '10px 20px', background: '#1a1a1a', color: '#fff', borderRadius: 8, border: 'none', cursor: 'pointer' }}>{t.save}</button>
                         </div>
-                    </form>
+                    </div>
                 </div>
-            </div>
+            )}
         </div>
     )
 }
 
-// Main App
+function AdminRoute({ products, setProducts }) {
+    const [auth, setAuth] = useState(sessionStorage.getItem('admin_auth') === 'true')
+    if (!auth) return <AdminLogin onLogin={() => setAuth(true)} />
+    return <AdminPanel products={products} setProducts={setProducts} />
+}
+
+// ========================================
+// MAIN APP
+// ========================================
 function App() {
     const [language, setLanguage] = useState('ar')
-    const [products, setProducts] = useState(initialProducts)
+    const [products, setProducts] = useState(loadProducts)
     const [cart, setCart] = useState([])
-    const [isCartOpen, setIsCartOpen] = useState(false)
-    const [isAdminView, setIsAdminView] = useState(false)
-    const [toasts, setToasts] = useState([])
+    const [cartOpen, setCartOpen] = useState(false)
 
     const t = translations[language]
-    const isRTL = language === 'ar'
 
     useEffect(() => {
-        document.documentElement.dir = isRTL ? 'rtl' : 'ltr'
+        document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr'
         document.documentElement.lang = language
-    }, [language, isRTL])
+    }, [language])
 
-    const showToast = (msg, type = 'success') => {
-        const id = Date.now()
-        setToasts(prev => [...prev, { id, message: msg, type }])
-    }
-
-    const removeToast = (id) => setToasts(prev => prev.filter(t => t.id !== id))
-
-    const addToCart = (product) => {
+    const addToCart = (p) => {
         setCart(prev => {
-            const existing = prev.find(i => i.id === product.id)
-            if (existing) return prev.map(i => i.id === product.id ? { ...i, quantity: i.quantity + 1 } : i)
-            return [...prev, { ...product, quantity: 1 }]
+            const exists = prev.find(i => i.id === p.id)
+            if (exists) return prev.map(i => i.id === p.id ? { ...i, qty: i.qty + 1 } : i)
+            return [...prev, { ...p, qty: 1 }]
         })
-        showToast(t.addedToCart)
     }
-
-    const updateQuantity = (id, qty) => {
-        if (qty <= 0) { removeFromCart(id); return }
-        setCart(prev => prev.map(i => i.id === id ? { ...i, quantity: qty } : i))
+    const updateQty = (id, qty) => {
+        if (qty <= 0) setCart(prev => prev.filter(i => i.id !== id))
+        else setCart(prev => prev.map(i => i.id === id ? { ...i, qty } : i))
     }
-
-    const removeFromCart = (id) => {
-        setCart(prev => prev.filter(i => i.id !== id))
-        showToast(t.removedFromCart, 'error')
-    }
-
+    const removeFromCart = (id) => setCart(prev => prev.filter(i => i.id !== id))
     const clearCart = () => setCart([])
-
-    const addProduct = (p) => { setProducts(prev => [...prev, p]); showToast(t.productAdded) }
-    const editProduct = (p) => { setProducts(prev => prev.map(x => x.id === p.id ? p : x)); showToast(t.productUpdated) }
-    const deleteProduct = (id) => {
-        if (window.confirm(t.confirmDelete)) {
-            setProducts(prev => prev.filter(p => p.id !== id))
-            showToast(t.productDeleted, 'error')
-        }
-    }
-
-    const cartCount = cart.reduce((s, i) => s + i.quantity, 0)
-    const ctx = { language, setLanguage, t, isRTL }
-
-    if (isAdminView) {
-        return (
-            <LanguageContext.Provider value={ctx}>
-                <Header cartCount={cartCount} onCartClick={() => setIsCartOpen(true)} onAdminClick={() => setIsAdminView(true)} />
-                <AdminPanel products={products} onAddProduct={addProduct} onEditProduct={editProduct} onDeleteProduct={deleteProduct} onBack={() => setIsAdminView(false)} />
-                <div className="toast-container">{toasts.map(t => <Toast key={t.id} message={t.message} type={t.type} onClose={() => removeToast(t.id)} />)}</div>
-            </LanguageContext.Provider>
-        )
-    }
+    const cartCount = cart.reduce((s, i) => s + i.qty, 0)
 
     return (
-        <LanguageContext.Provider value={ctx}>
+        <AppContext.Provider value={{ language, setLanguage, t }}>
             <Router>
-                <Header cartCount={cartCount} onCartClick={() => setIsCartOpen(true)} onAdminClick={() => setIsAdminView(true)} />
-                <main>
-                    <Hero />
-                    <Categories />
-                    <Products products={products} onAddToCart={addToCart} />
-                    <Features />
-                    <Newsletter />
-                </main>
-                <Footer />
-                <CartSidebar isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} cart={cart} updateQuantity={updateQuantity} removeFromCart={removeFromCart} clearCart={clearCart} />
-                <div className="toast-container">{toasts.map(t => <Toast key={t.id} message={t.message} type={t.type} onClose={() => removeToast(t.id)} />)}</div>
+                <Routes>
+                    <Route path={CONFIG.adminUrl} element={<AdminRoute products={products} setProducts={setProducts} />} />
+                    <Route path="*" element={
+                        <>
+                            <Header onCartClick={() => setCartOpen(true)} cartCount={cartCount} />
+                            <Hero />
+                            <Categories />
+                            <Products products={products} onAdd={addToCart} />
+                            <Features />
+                            <Footer />
+                            <CartSidebar isOpen={cartOpen} onClose={() => setCartOpen(false)} cart={cart} updateQty={updateQty} remove={removeFromCart} clear={clearCart} />
+                        </>
+                    } />
+                </Routes>
             </Router>
-        </LanguageContext.Provider>
+        </AppContext.Provider>
     )
 }
 
