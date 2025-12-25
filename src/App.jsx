@@ -915,123 +915,328 @@ function ShopPage({ products, config, onQuickView, onAdd, t }) {
     const [filterCat, setFilterCat] = useState('all')
     const [priceRange, setPriceRange] = useState(1000)
     const [sort, setSort] = useState('newest')
+    const [searchQuery, setSearchQuery] = useState('')
 
-    const filtered = products.filter(p =>
-        (filterCat === 'all' || p.category === filterCat) &&
-        p.price <= priceRange
-    ).sort((a, b) => sort === 'price_asc' ? a.price - b.price : sort === 'price_desc' ? b.price - a.price : b.id - a.id)
+    const filtered = products.filter(p => {
+        const matchesCat = filterCat === 'all' || p.category === filterCat
+        const matchesPrice = p.price <= priceRange
+        const matchesSearch = searchQuery === '' ||
+            p.name[language].toLowerCase().includes(searchQuery.toLowerCase()) ||
+            p.description?.toLowerCase().includes(searchQuery.toLowerCase())
+        return matchesCat && matchesPrice && matchesSearch
+    }).sort((a, b) => {
+        if (sort === 'price_asc') return a.price - b.price
+        if (sort === 'price_desc') return b.price - a.price
+        if (sort === 'name') return a.name[language].localeCompare(b.name[language])
+        return b.id - a.id
+    })
+
+    const maxPrice = Math.max(...products.map(p => p.price), 1000)
+    const categoryCount = (catId) => products.filter(p => catId === 'all' ? true : p.category === catId).length
 
     return (
         <div className="shop-layout">
-            <div className="shop-sidebar">
-                <div style={{ background: 'white', padding: 24, borderRadius: 8, border: '1px solid #eee' }}>
-                    <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 20 }}>Refine Selection</h3>
+            {/* Sidebar Filters */}
+            <aside className="shop-sidebar">
+                <div className="filter-card">
+                    <h3 className="filter-title">
+                        <Grid size={20} /> Filters
+                    </h3>
 
-                    <div style={{ marginBottom: 30 }}>
-                        <h4 style={{ fontWeight: 600, marginBottom: 12 }}>Category</h4>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                            <label style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, fontSize: 14 }}>
-                                <input type="radio" name="cat" checked={filterCat === 'all'} onChange={() => setFilterCat('all')} style={{ accentColor: 'black' }} /> All Production
+                    {/* Search */}
+                    <div className="filter-section">
+                        <h4>Search</h4>
+                        <div style={{ position: 'relative' }}>
+                            <Search size={18} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#999' }} />
+                            <input
+                                className="input"
+                                style={{ paddingLeft: 44, marginBottom: 0 }}
+                                placeholder="Search products..."
+                                value={searchQuery}
+                                onChange={e => setSearchQuery(e.target.value)}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Categories */}
+                    <div className="filter-section">
+                        <h4>Categories</h4>
+                        <label className="filter-option">
+                            <input
+                                type="radio"
+                                name="category"
+                                checked={filterCat === 'all'}
+                                onChange={() => setFilterCat('all')}
+                            />
+                            <span>All Products</span>
+                            <span style={{ marginLeft: 'auto', fontSize: 12, color: '#999' }}>({categoryCount('all')})</span>
+                        </label>
+                        {config.categories.map(c => (
+                            <label key={c.id} className="filter-option">
+                                <input
+                                    type="radio"
+                                    name="category"
+                                    checked={filterCat === c.id}
+                                    onChange={() => setFilterCat(c.id)}
+                                />
+                                <span>{c.label[language]}</span>
+                                <span style={{ marginLeft: 'auto', fontSize: 12, color: '#999' }}>({categoryCount(c.id)})</span>
                             </label>
-                            {config.categories.map(c => (
-                                <label key={c.id} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, fontSize: 14 }}>
-                                    <input type="radio" name="cat" checked={filterCat === c.id} onChange={() => setFilterCat(c.id)} style={{ accentColor: 'black' }} /> {c.label[language]}
-                                </label>
-                            ))}
+                        ))}
+                    </div>
+
+                    {/* Price Range */}
+                    <div className="filter-section">
+                        <h4>Price Range</h4>
+                        <div className="price-range-label">
+                            <span style={{ color: '#666', fontSize: 13 }}>Max Price</span>
+                            <span>{priceRange} {config.currency}</span>
+                        </div>
+                        <input
+                            type="range"
+                            min="0"
+                            max={maxPrice}
+                            value={priceRange}
+                            onChange={e => setPriceRange(Number(e.target.value))}
+                        />
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, fontSize: 12, color: '#999' }}>
+                            <span>0 {config.currency}</span>
+                            <span>{maxPrice} {config.currency}</span>
                         </div>
                     </div>
 
-                    <div>
-                        <div className="flex-between" style={{ marginBottom: 12 }}>
-                            <h4 style={{ fontWeight: 600 }}>Price Range</h4>
-                            <span style={{ fontSize: 13, color: '#666' }}>{priceRange} {config.currency}</span>
-                        </div>
-                        <input type="range" min="0" max="1000" value={priceRange} onChange={e => setPriceRange(Number(e.target.value))} style={{ width: '100%', accentColor: 'black' }} />
-                    </div>
+                    {/* Clear Filters */}
+                    {(filterCat !== 'all' || priceRange < maxPrice || searchQuery) && (
+                        <button
+                            onClick={() => { setFilterCat('all'); setPriceRange(maxPrice); setSearchQuery('') }}
+                            className="btn btn-ghost"
+                            style={{ width: '100%', marginTop: 16, color: '#666', fontSize: 14 }}
+                        >
+                            <X size={16} /> Clear All Filters
+                        </button>
+                    )}
                 </div>
-            </div>
+            </aside>
 
-            <div style={{ flex: 1 }}>
-                <div className="flex-between" style={{ marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>
+            {/* Main Content */}
+            <main style={{ flex: 1 }}>
+                <div className="shop-header">
                     <div>
-                        <h1 style={{ fontSize: 28, fontWeight: 700 }}>{t.shop}</h1>
-                        <p style={{ color: '#666' }}>Showing {filtered.length} items</p>
+                        <h1 className="shop-title">{t.shop}</h1>
+                        <p className="shop-count">
+                            {filtered.length} {filtered.length === 1 ? 'product' : 'products'} found
+                            {filterCat !== 'all' && ` in "${config.categories.find(c => c.id === filterCat)?.label[language]}"`}
+                        </p>
                     </div>
-                    <select className="input" style={{ width: 'auto', marginBottom: 0 }} value={sort} onChange={e => setSort(e.target.value)}>
+                    <select
+                        className="sort-select"
+                        value={sort}
+                        onChange={e => setSort(e.target.value)}
+                    >
                         <option value="newest">Newest Arrivals</option>
                         <option value="price_asc">Price: Low to High</option>
                         <option value="price_desc">Price: High to Low</option>
+                        <option value="name">Name: A to Z</option>
                     </select>
                 </div>
 
                 {filtered.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: 60, color: '#999', background: '#F9FAFB', borderRadius: 8 }}>
-                        <h3>No products match your filters.</h3>
-                        <button onClick={() => { setFilterCat('all'); setPriceRange(1000) }} style={{ color: 'black', textDecoration: 'underline', marginTop: 8 }}>Clear Filters</button>
+                    <div className="no-products">
+                        <Package size={48} style={{ color: '#ddd', margin: '0 auto 20px' }} />
+                        <h3>No products found</h3>
+                        <p>Try adjusting your filters or search query.</p>
+                        <button
+                            onClick={() => { setFilterCat('all'); setPriceRange(maxPrice); setSearchQuery('') }}
+                            className="btn btn-primary"
+                        >
+                            View All Products
+                        </button>
                     </div>
                 ) : (
-                    <div className="grid-products">
-                        {filtered.map(p => <ProductCard key={p.id} product={p} onQuickView={onQuickView} onAdd={onAdd} />)}
+                    <div className="grid-products animate-fade">
+                        {filtered.map(p => (
+                            <ProductCard key={p.id} product={p} onQuickView={onQuickView} onAdd={onAdd} />
+                        ))}
                     </div>
                 )}
-            </div>
+            </main>
         </div>
     )
 }
 
+
 function Home({ products, config, onQuickView, onAdd, t }) {
-    const language = useApp().language
+    const { language } = useApp()
+
+    const features = [
+        { icon: <Truck size={24} />, title: 'Free Shipping', text: 'On orders over $150' },
+        { icon: <Shield size={24} />, title: 'Secure Checkout', text: '100% protected payments' },
+        { icon: <Package size={24} />, title: 'Quality Guarantee', text: 'Handcrafted with care' },
+        { icon: <Headphones size={24} />, title: '24/7 Support', text: 'Here to help anytime' }
+    ]
+
     return (
         <>
-            <div className="hero">
-                <div>
+            {/* Hero Section */}
+            <section className="hero">
+                <div style={{ position: 'relative', zIndex: 1, maxWidth: 800 }}>
+                    <span style={{
+                        display: 'inline-block',
+                        background: 'rgba(233, 69, 96, 0.2)',
+                        color: '#e94560',
+                        padding: '8px 20px',
+                        borderRadius: 30,
+                        fontSize: 14,
+                        fontWeight: 600,
+                        marginBottom: 24,
+                        backdropFilter: 'blur(10px)'
+                    }}>
+                        ✨ New Collection 2024
+                    </span>
                     <h1 className="animate-slide">{config.hero.title[language]}</h1>
-                    <p style={{ fontSize: '1.2rem', marginBottom: 32, opacity: 0.9 }}>{config.hero.subtitle[language]}</p>
-                    <Link to="/shop" className="btn btn-primary" style={{ padding: '12px 32px', fontSize: 18, textDecoration: 'none' }}>Explore Collection</Link>
+                    <p>{config.hero.subtitle[language]}</p>
+                    <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
+                        <Link to="/shop" className="btn btn-accent" style={{ textDecoration: 'none' }}>
+                            <ShoppingBag size={20} /> Explore Collection
+                        </Link>
+                        <a href="#featured" className="btn btn-ghost" style={{ color: 'white', border: '2px solid rgba(255,255,255,0.3)' }}>
+                            View Bestsellers
+                        </a>
+                    </div>
                 </div>
-            </div>
+            </section>
 
-            <div id="categories" className="container" style={{ margin: '60px auto' }}>
-                <div className="flex-between" style={{ marginBottom: 32 }}>
-                    <h2 style={{ fontSize: 24, fontWeight: 700 }}>{t.categories}</h2>
+            {/* Features Section */}
+            <section style={{ padding: '60px 0', background: 'white', marginTop: -40, position: 'relative', zIndex: 10 }}>
+                <div className="container">
+                    <div className="features-grid">
+                        {features.map((f, i) => (
+                            <div key={i} className="feature-card">
+                                <div className="feature-icon">{f.icon}</div>
+                                <h4 className="feature-title">{f.title}</h4>
+                                <p className="feature-text">{f.text}</p>
+                            </div>
+                        ))}
+                    </div>
                 </div>
-                <div className="grid-3" style={{ gridTemplateColumns: `repeat(auto-fit, minmax(250px, 1fr))` }}>
-                    {config.categories.map(cat => (
-                        <div key={cat.id} className="cat-card">
-                            <img src={cat.image} alt={cat.label.en} />
-                            <div className="cat-overlay">
-                                <span className="cat-title">{cat.label[language]}</span>
+            </section>
+
+            {/* Categories Section */}
+            <section className="section" id="categories">
+                <div className="container">
+                    <div className="section-header">
+                        <h2 className="section-title">{t.categories}</h2>
+                        <p className="section-subtitle">Explore our carefully curated collections of authentic Moroccan craftsmanship</p>
+                    </div>
+                    <div className="grid-4">
+                        {config.categories.map(cat => (
+                            <Link to={`/shop?category=${cat.id}`} key={cat.id} className="cat-card" style={{ textDecoration: 'none' }}>
+                                <img src={cat.image} alt={cat.label[language]} />
+                                <div className="cat-overlay">
+                                    <span className="cat-title">{cat.label[language]}</span>
+                                </div>
+                            </Link>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* Promo Banner */}
+            <section style={{ padding: '0 24px' }}>
+                <div className="container">
+                    <div className="promo-banner">
+                        <h2>Exclusive Artisan Collection</h2>
+                        <p>Handpicked pieces crafted by Moroccan artisans with generations of expertise</p>
+                        <Link to="/shop" className="btn btn-accent" style={{ textDecoration: 'none' }}>
+                            Shop Now <ArrowRight size={18} />
+                        </Link>
+                    </div>
+                </div>
+            </section>
+
+            {/* Visual Showcase */}
+            <section className="section">
+                <div className="container">
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 24 }}>
+                        <div className="group" style={{ position: 'relative', height: 450, borderRadius: 16, overflow: 'hidden' }}>
+                            <img
+                                src="https://images.unsplash.com/photo-1548690312-e3b507d8c110?w=800"
+                                alt="Artisan Crafts"
+                                className="group-hover:scale-105"
+                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            />
+                            <div className="cat-overlay" style={{ padding: 32 }}>
+                                <div>
+                                    <h3 style={{ color: 'white', fontSize: 28, fontWeight: 700, marginBottom: 12 }}>Artisan Crafts</h3>
+                                    <p style={{ color: 'rgba(255,255,255,0.8)', marginBottom: 20 }}>Handwoven traditions passed through generations</p>
+                                    <Link to="/shop" className="btn btn-outline" style={{ color: 'white', borderColor: 'rgba(255,255,255,0.4)', textDecoration: 'none' }}>
+                                        Discover More
+                                    </Link>
+                                </div>
                             </div>
                         </div>
-                    ))}
-                </div>
-            </div>
-
-            <div className="container" style={{ marginBottom: 80 }}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 24 }}>
-                    <div style={{ position: 'relative', height: 400, borderRadius: 12, overflow: 'hidden', cursor: 'pointer' }} className="group">
-                        <img src="https://images.unsplash.com/photo-1548690312-e3b507d8c110?w=800" style={{ width: '100%', height: '100%', objectFit: 'cover', transition: '0.5s' }} className="group-hover:scale-105" />
-                        <div className="cat-overlay"><h3>Artisan Crafts</h3></div>
+                        <div className="group" style={{ position: 'relative', height: 450, borderRadius: 16, overflow: 'hidden' }}>
+                            <img
+                                src="https://images.unsplash.com/photo-1532453288672-3a27e9be9efd?w=800"
+                                alt="Modern Elegance"
+                                className="group-hover:scale-105"
+                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            />
+                            <div className="cat-overlay" style={{ padding: 32 }}>
+                                <div>
+                                    <h3 style={{ color: 'white', fontSize: 28, fontWeight: 700, marginBottom: 12 }}>Modern Elegance</h3>
+                                    <p style={{ color: 'rgba(255,255,255,0.8)', marginBottom: 20 }}>Contemporary designs with traditional roots</p>
+                                    <Link to="/shop" className="btn btn-outline" style={{ color: 'white', borderColor: 'rgba(255,255,255,0.4)', textDecoration: 'none' }}>
+                                        Discover More
+                                    </Link>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div style={{ position: 'relative', height: 400, borderRadius: 12, overflow: 'hidden', cursor: 'pointer' }} className="group">
-                        <img src="https://images.unsplash.com/photo-1532453288672-3a27e9be9efd?w=800" style={{ width: '100%', height: '100%', objectFit: 'cover', transition: '0.5s' }} className="group-hover:scale-105" />
-                        <div className="cat-overlay"><h3>Modern Elegance</h3></div>
+                </div>
+            </section>
+
+            {/* Featured Products */}
+            <section className="section" id="featured" style={{ background: '#fafafa' }}>
+                <div className="container">
+                    <div className="section-header">
+                        <h2 className="section-title">{t.featured}</h2>
+                        <p className="section-subtitle">Our most loved pieces, handpicked for their exceptional quality and design</p>
+                    </div>
+                    <div className="grid-products">
+                        {products.slice(0, 8).map(p => (
+                            <ProductCard key={p.id} product={p} onQuickView={onQuickView} onAdd={onAdd} />
+                        ))}
+                    </div>
+                    <div style={{ textAlign: 'center', marginTop: 48 }}>
+                        <Link to="/shop" className="btn btn-primary" style={{ textDecoration: 'none' }}>
+                            View All Products <ArrowRight size={18} />
+                        </Link>
                     </div>
                 </div>
-            </div>
+            </section>
 
-            <div id="featured" className="container" style={{ marginBottom: 100 }}>
-                <div className="flex-between" style={{ marginBottom: 32 }}>
-                    <h2 style={{ fontSize: 24, fontWeight: 700 }}>{t.featured}</h2>
-                    <Link to="/shop" className="btn btn-outline" style={{ textDecoration: 'none' }}>{t.viewAll}</Link>
+            {/* Newsletter Section */}
+            <section className="section" style={{ background: 'white' }}>
+                <div className="container" style={{ maxWidth: 600, textAlign: 'center' }}>
+                    <h2 style={{ fontSize: 28, fontWeight: 800, marginBottom: 16 }}>Stay Updated</h2>
+                    <p style={{ color: '#666', marginBottom: 32 }}>Subscribe to receive exclusive offers, new arrivals, and styling tips</p>
+                    <form style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }} onSubmit={e => { e.preventDefault(); alert('Thank you for subscribing!') }}>
+                        <input
+                            type="email"
+                            className="input"
+                            placeholder="Enter your email"
+                            style={{ flex: 1, minWidth: 250, marginBottom: 0 }}
+                            required
+                        />
+                        <button type="submit" className="btn btn-primary">Subscribe</button>
+                    </form>
                 </div>
-                <div className="grid-products">
-                    {products.slice(0, 8).map(p => <ProductCard key={p.id} product={p} onQuickView={onQuickView} onAdd={onAdd} />)}
-                </div>
-            </div>
+            </section>
         </>
     )
 }
+
 
 function DynamicPage() {
     const loc = useLocation()
@@ -1073,14 +1278,18 @@ function App() {
 
     const PageLayout = ({ children }) => (
         <>
-            <div style={{ background: '#000', color: '#fff', textAlign: 'center', padding: 8, fontSize: 13, fontWeight: 500 }}>{config.announcement}</div>
+            <div className="announcement-bar">{config.announcement}</div>
             <nav className="header">
-                <div className="container flex-between" style={{ height: 70 }}>
+                <div className="container flex-between" style={{ height: 72 }}>
                     <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 12, textDecoration: 'none', color: 'inherit' }}>
-                        {config.logoUrl ? <img src={config.logoUrl} alt={config.storeName} style={{ height: 40 }} /> : <div style={{ fontWeight: 800, fontSize: 20, letterSpacing: -0.5 }}>{config.storeName}</div>}
+                        {config.logoUrl ? (
+                            <img src={config.logoUrl} alt={config.storeName} style={{ height: 44 }} />
+                        ) : (
+                            <div style={{ fontWeight: 800, fontSize: 22, letterSpacing: -0.5 }}>{config.storeName}</div>
+                        )}
                     </Link>
 
-                    <div className="desktop-nav" style={{ gap: 24, fontWeight: 500 }}>
+                    <div className="desktop-nav" style={{ gap: 32 }}>
                         <Link to="/" className="nav-link">{t.home}</Link>
                         <Link to="/shop" className="nav-link">{t.shop}</Link>
                         <a href="/#categories" className="nav-link">{t.categories}</a>
@@ -1089,10 +1298,21 @@ function App() {
                         ))}
                     </div>
 
-                    <div style={{ display: 'flex', gap: 16 }}>
-                        <button onClick={() => setLanguage(language === 'en' ? 'ar' : 'en')} className="btn-outline" style={{ padding: '6px 12px' }}>{language.toUpperCase()}</button>
-                        <button onClick={() => setCartOpen(true)} className="btn-primary" style={{ padding: '8px 16px', borderRadius: 20 }}>
-                            <ShoppingCart size={18} style={{ marginRight: 8 }} /> {cart.length}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <button
+                            onClick={() => setLanguage(language === 'en' ? 'ar' : 'en')}
+                            className="btn btn-ghost"
+                            style={{ padding: '8px 12px', fontSize: 13, fontWeight: 600 }}
+                        >
+                            <Globe size={16} /> {language.toUpperCase()}
+                        </button>
+                        <button
+                            onClick={() => setCartOpen(true)}
+                            className="btn btn-primary"
+                            style={{ padding: '10px 20px', borderRadius: 30, gap: 8 }}
+                        >
+                            <ShoppingCart size={18} />
+                            <span style={{ background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: 12, fontSize: 12 }}>{cart.length}</span>
                         </button>
                     </div>
                 </div>
@@ -1100,26 +1320,41 @@ function App() {
 
             {children}
 
-            <footer style={{ background: '#111827', color: 'white', padding: '60px 0', marginTop: 60 }}>
-                <div className="container grid-3" style={{ gap: 60 }}>
-                    <div>
-                        {config.logoUrl ? <img src={config.logoUrl} alt={config.storeName} style={{ height: 60, marginBottom: 16 }} /> : <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 20 }}>{config.storeName}</h3>}
-                        <p style={{ color: '#9CA3AF', lineHeight: 1.6 }}>Authentic Moroccan craftsmanship delivered to your doorstep. Experience the luxury of tradition.</p>
-                    </div>
-                    <div>
-                        <h4 style={{ fontWeight: 600, marginBottom: 20 }}>Customer Service</h4>
-                        {config.pages?.filter(p => p.footer).map(p => (
-                            <p key={p.id} style={{ marginBottom: 8 }}><Link to={`/page/${p.id}`} className="nav-link" style={{ fontSize: 14, color: '#9CA3AF' }}>{p.title[language]}</Link></p>
-                        ))}
-                    </div>
-                    <div>
-                        <h4 style={{ fontWeight: 600, marginBottom: 20 }}>Follow Us</h4>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                            {config.socials?.instagram && <a href={config.socials.instagram} target="_blank" className="social-item"><Instagram size={18} /> Instagram</a>}
-                            {config.socials?.facebook && <a href={config.socials.facebook} target="_blank" className="social-item"><Facebook size={18} /> Facebook</a>}
-                            {config.socials?.twitter && <a href={config.socials.twitter} target="_blank" className="social-item"><Twitter size={18} /> Twitter/X</a>}
-                            {config.socials?.tiktok && <a href={config.socials.tiktok} target="_blank" className="social-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 18, height: 18 }}><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" /></svg> TikTok</a>}
+            <footer className="footer">
+                <div className="container">
+                    <div className="footer-grid">
+                        <div className="footer-brand">
+                            {config.logoUrl ? (
+                                <img src={config.logoUrl} alt={config.storeName} style={{ height: 50, marginBottom: 16 }} />
+                            ) : (
+                                <h3 style={{ fontSize: 24, fontWeight: 800, marginBottom: 16 }}>{config.storeName}</h3>
+                            )}
+                            <p>Authentic Moroccan craftsmanship delivered to your doorstep. Experience the luxury of tradition with every piece.</p>
                         </div>
+                        <div>
+                            <h4 className="footer-title">Quick Links</h4>
+                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                <Link to="/" className="social-item">Home</Link>
+                                <Link to="/shop" className="social-item">Shop</Link>
+                                {config.pages?.filter(p => p.footer).map(p => (
+                                    <Link key={p.id} to={`/page/${p.id}`} className="social-item">{p.title[language]}</Link>
+                                ))}
+                            </div>
+                        </div>
+                        <div>
+                            <h4 className="footer-title">Connect With Us</h4>
+                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                {config.socials?.instagram && <a href={config.socials.instagram} target="_blank" rel="noopener noreferrer" className="social-item"><Instagram size={18} /> Instagram</a>}
+                                {config.socials?.facebook && <a href={config.socials.facebook} target="_blank" rel="noopener noreferrer" className="social-item"><Facebook size={18} /> Facebook</a>}
+                                {config.socials?.twitter && <a href={config.socials.twitter} target="_blank" rel="noopener noreferrer" className="social-item"><Twitter size={18} /> Twitter</a>}
+                                {config.socials?.tiktok && <a href={config.socials.tiktok} target="_blank" rel="noopener noreferrer" className="social-item">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 18, height: 18 }}><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" /></svg> TikTok
+                                </a>}
+                            </div>
+                        </div>
+                    </div>
+                    <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', marginTop: 48, paddingTop: 24, textAlign: 'center', color: 'rgba(255,255,255,0.5)', fontSize: 14 }}>
+                        © {new Date().getFullYear()} {config.storeName}. All rights reserved.
                     </div>
                 </div>
             </footer>
