@@ -25,11 +25,12 @@ const DEFAULT_CONFIG = {
         subtitle: { en: "Discover the timeless beauty of handcrafted tradition.", ar: "اكتشف الجمال الخالد للتقاليد اليدوية." },
         image: ''
     },
+    socials: { instagram: '', facebook: '', twitter: '', tiktok: '' },
     pages: [
-        { id: 'about', title: { en: 'About Us', ar: 'من نحن' }, content: { en: 'Welcome to MarocBoutique. We provide the finest Moroccan handcrafted goods.', ar: 'مرحبًا بكم في MarocBoutique. نحن نقدم أرقى السلع المغربية المصنوعة يدويًا.' } },
-        { id: 'contact', title: { en: 'Contact Us', ar: 'اتصل بنا' }, content: { en: 'Email us at support@maroc.com or WhatsApp us.', ar: 'راسلنا على support@maroc.com أو تواصل عبر واتساب.' } },
-        { id: 'shipping', title: { en: 'Shipping Policy', ar: 'سياسة الشحن' }, content: { en: 'We ship worldwide within 5-10 business days.', ar: 'نشحن لجميع أنحاء العالم في غضون 5-10 أيام عمل.' } },
-        { id: 'privacy', title: { en: 'Privacy Policy', ar: 'سياسة الخصوصية' }, content: { en: 'Your data is safe with us.', ar: 'بياناتك في أمان معنا.' } }
+        { id: 'about', title: { en: 'About Us', ar: 'من نحن' }, content: { en: 'Welcome to MarocBoutique. We provide the finest Moroccan handcrafted goods.', ar: 'مرحبًا بكم في MarocBoutique. نحن نقدم أرقى السلع المغربية المصنوعة يدويًا.' }, header: true, footer: true },
+        { id: 'contact', title: { en: 'Contact Us', ar: 'اتصل بنا' }, content: { en: 'Email us at support@maroc.com or WhatsApp us.', ar: 'راسلنا على support@maroc.com أو تواصل عبر واتساب.' }, header: true, footer: true },
+        { id: 'shipping', title: { en: 'Shipping Policy', ar: 'سياسة الشحن' }, content: { en: 'We ship worldwide within 5-10 business days.', ar: 'نشحن لجميع أنحاء العالم في غضون 5-10 أيام عمل.' }, header: false, footer: true },
+        { id: 'privacy', title: { en: 'Privacy Policy', ar: 'سياسة الخصوصية' }, content: { en: 'Your data is safe with us.', ar: 'بياناتك في أمان معنا.' }, header: false, footer: true }
     ]
 }
 
@@ -620,47 +621,86 @@ function AdminCategories({ config, setConfig }) {
 function AdminPages({ config, setConfig }) {
     const [editing, setEditing] = useState(null)
 
-    const handleSave = () => {
-        setConfig({ ...config, pages: config.pages.map(p => p.id === editing.id ? editing : p) })
+    const handleSave = (e) => {
+        e.preventDefault()
+        const newPages = editing.isNew
+            ? [...config.pages, { ...editing, isNew: undefined }]
+            : config.pages.map(p => p.id === editing.id ? editing : p)
+        setConfig({ ...config, pages: newPages })
         setEditing(null)
+    }
+
+    const handleDelete = (id) => {
+        if (confirm('Delete this page?')) {
+            setConfig({ ...config, pages: config.pages.filter(p => p.id !== id) })
+        }
     }
 
     if (editing) {
         return (
             <div className="card" style={{ padding: 24, maxWidth: 800, margin: '0 auto' }}>
-                <h3 style={{ marginBottom: 20 }}>Edit Page: {editing.id}</h3>
-                <div className="grid-2">
-                    <div><label>Title (En)</label><input className="input" value={editing.title.en} onChange={e => setEditing({ ...editing, title: { ...editing.title, en: e.target.value } })} /></div>
-                    <div><label>Title (Ar)</label><input className="input" value={editing.title.ar} onChange={e => setEditing({ ...editing, title: { ...editing.title, ar: e.target.value } })} style={{ textAlign: 'right' }} /></div>
-                </div>
+                <h3 style={{ marginBottom: 20 }}>{editing.isNew ? 'Create Page' : `Edit Page: ${editing.id}`}</h3>
+                <form onSubmit={handleSave}>
+                    {editing.isNew && <div style={{ marginBottom: 16 }}><label>Page ID (URL slug)</label><input className="input" required value={editing.id} onChange={e => setEditing({ ...editing, id: e.target.value.toLowerCase().replace(/\s/g, '-') })} placeholder="e.g. return-policy" /></div>}
 
-                <div style={{ marginTop: 16 }}>
-                    <label>Content (English)</label>
-                    <textarea className="input" rows={6} value={editing.content.en} onChange={e => setEditing({ ...editing, content: { ...editing.content, en: e.target.value } })} />
-                </div>
+                    <div className="grid-2">
+                        <div><label>Title (En)</label><input className="input" required value={editing.title.en} onChange={e => setEditing({ ...editing, title: { ...editing.title, en: e.target.value } })} /></div>
+                        <div><label>Title (Ar)</label><input className="input" required value={editing.title.ar} onChange={e => setEditing({ ...editing, title: { ...editing.title, ar: e.target.value } })} style={{ textAlign: 'right' }} /></div>
+                    </div>
 
-                <div style={{ marginTop: 16 }}>
-                    <label>Content (Arabic)</label>
-                    <textarea className="input" rows={6} value={editing.content.ar} onChange={e => setEditing({ ...editing, content: { ...editing.content, ar: e.target.value } })} style={{ textAlign: 'right' }} />
-                </div>
+                    <div style={{ marginTop: 16 }}>
+                        <label>Content (English)</label>
+                        <textarea className="input" rows={6} value={editing.content.en} onChange={e => setEditing({ ...editing, content: { ...editing.content, en: e.target.value } })} />
+                    </div>
 
-                <div className="flex-between">
-                    <button onClick={() => setEditing(null)} className="btn btn-outline">Cancel</button>
-                    <button onClick={handleSave} className="btn btn-primary">Save Changes</button>
-                </div>
+                    <div style={{ marginTop: 16 }}>
+                        <label>Content (Arabic)</label>
+                        <textarea className="input" rows={6} value={editing.content.ar} onChange={e => setEditing({ ...editing, content: { ...editing.content, ar: e.target.value } })} style={{ textAlign: 'right' }} />
+                    </div>
+
+                    <div style={{ marginTop: 24, padding: 16, background: '#f9fafb', borderRadius: 8 }}>
+                        <h4 style={{ fontSize: 14, marginBottom: 12 }}>Placement Settings</h4>
+                        <div style={{ display: 'flex', gap: 24 }}>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                                <input type="checkbox" checked={editing.header} onChange={e => setEditing({ ...editing, header: e.target.checked })} /> Show in Header
+                            </label>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                                <input type="checkbox" checked={editing.footer} onChange={e => setEditing({ ...editing, footer: e.target.checked })} /> Show in Footer
+                            </label>
+                        </div>
+                    </div>
+
+                    <div className="flex-between" style={{ marginTop: 24 }}>
+                        <button type="button" onClick={() => setEditing(null)} className="btn btn-outline">Cancel</button>
+                        <button type="submit" className="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
             </div>
         )
     }
 
     return (
         <div>
-            <h2 style={{ fontSize: 28, fontWeight: 700, marginBottom: 24 }}>Pages</h2>
+            <div className="flex-between" style={{ marginBottom: 24 }}>
+                <h2 style={{ fontSize: 28, fontWeight: 700 }}>Pages</h2>
+                <button onClick={() => setEditing({ isNew: true, id: '', title: { en: '', ar: '' }, content: { en: '', ar: '' }, header: false, footer: true })} className="btn btn-primary" style={{ gap: 8 }}><Plus size={18} /> Create Page</button>
+            </div>
             <div className="grid-2">
                 {config.pages.map(p => (
-                    <div key={p.id} className="card" style={{ padding: 24, cursor: 'pointer' }} onClick={() => setEditing(p)}>
-                        <div className="flex-between">
-                            <span style={{ fontWeight: 600 }}>{p.title.en}</span>
-                            <Edit size={16} />
+                    <div key={p.id} className="card" style={{ padding: 24 }}>
+                        <div className="flex-between" style={{ marginBottom: 12 }}>
+                            <span style={{ fontWeight: 600, fontSize: 18 }}>{p.title.en}</span>
+                            <div style={{ display: 'flex', gap: 4 }}>
+                                {p.header && <span className="badge" style={{ background: '#DBEAFE', color: '#1E40AF' }}>Header</span>}
+                                {p.footer && <span className="badge" style={{ background: '#F3F4F6', color: '#374151' }}>Footer</span>}
+                            </div>
+                        </div>
+                        <div className="flex-between" style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid #eee' }}>
+                            <a href={`/page/${p.id}`} target="_blank" style={{ fontSize: 13, color: '#666', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4 }}><Globe size={14} /> View</a>
+                            <div style={{ display: 'flex', gap: 8 }}>
+                                <button onClick={() => setEditing(p)} className="icon-btn" style={{ width: 32, height: 32 }}><Edit size={16} /></button>
+                                <button onClick={() => handleDelete(p.id)} className="icon-btn" style={{ width: 32, height: 32, color: 'red' }}><Trash2 size={16} /></button>
+                            </div>
                         </div>
                     </div>
                 ))}
@@ -746,6 +786,28 @@ function AdminSettings({ config, setConfig }) {
                 </div>
             </div>
 
+            <div className="card" style={{ padding: 24, marginBottom: 24 }}>
+                <h3 style={{ marginBottom: 16 }}>Social Media Links</h3>
+                <div className="grid-2">
+                    <div>
+                        <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 500 }}>Instagram URL</label>
+                        <input className="input" value={local.socials?.instagram || ''} onChange={e => setLocal({ ...local, socials: { ...local.socials, instagram: e.target.value } })} placeholder="https://instagram.com/..." />
+                    </div>
+                    <div>
+                        <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 500 }}>Facebook URL</label>
+                        <input className="input" value={local.socials?.facebook || ''} onChange={e => setLocal({ ...local, socials: { ...local.socials, facebook: e.target.value } })} placeholder="https://facebook.com/..." />
+                    </div>
+                    <div>
+                        <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 500 }}>TikTok URL</label>
+                        <input className="input" value={local.socials?.tiktok || ''} onChange={e => setLocal({ ...local, socials: { ...local.socials, tiktok: e.target.value } })} placeholder="https://tiktok.com/..." />
+                    </div>
+                    <div>
+                        <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 500 }}>Twitter/X URL</label>
+                        <input className="input" value={local.socials?.twitter || ''} onChange={e => setLocal({ ...local, socials: { ...local.socials, twitter: e.target.value } })} placeholder="https://x.com/..." />
+                    </div>
+                </div>
+            </div>
+
             <div style={{ marginTop: 32, textAlign: 'right' }}>
                 <button className="btn btn-primary" onClick={handleSave} style={{ padding: '12px 32px', fontSize: 16 }}>Save All Changes</button>
             </div>
@@ -758,7 +820,7 @@ function AdminView({ config, setConfig, products, setProducts, orders, setOrders
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
     const [newPromo, setNewPromo] = useState({ code: '', discount: '' })
 
-    // const updateOrderStatus = (id, status) => setOrders(orders.map(o => o.id === id ? { ...o, status } : o)) // Moved to AdminOrders
+    // const updateOrderStatus = (id, status) => setOrders(orders.map(o => o.id === id ? {...o, status} : o)) // Moved to AdminOrders
 
     const addPromo = () => {
         if (!newPromo.code || !newPromo.discount) return alert('Please enter code and discount')
@@ -839,16 +901,8 @@ function AdminView({ config, setConfig, products, setProducts, orders, setOrders
     )
 }
 
-function PageView({ config }) {
-    const { id } = useParams()
-    const { language } = useUser() // Will fix context usage below
-    // Context fix:
-    const app = useApp()
-    const page = config.pages.find(p => p.id === window.location.pathname.split('/').pop()) // Simple workaround for now
 
-    // Better way with proper route check in App
-    return null
-}
+
 
 function Home({ products, config, onQuickView, onAdd, t }) {
     const language = useApp().language
@@ -910,7 +964,7 @@ function DynamicPage() {
 
 function App() {
     const [language, setLanguage] = useState('en')
-    const [config, setConfig] = useStickyState(DEFAULT_CONFIG, 'config_v6')
+    const [config, setConfig] = useStickyState(DEFAULT_CONFIG, 'config_v7')
     const [products, setProducts] = useStickyState(DEFAULT_PRODUCTS, 'products_v3')
     const [orders, setOrders] = useStickyState([], 'orders_v3')
     const [cart, setCart] = useState([])
@@ -939,7 +993,9 @@ function App() {
                     <div className="md:hidden flex" style={{ gap: 20, fontWeight: 500 }}>
                         <a href="/#categories" style={{ color: 'inherit', textDecoration: 'none' }}>{t.categories}</a>
                         <a href="/#shop" style={{ color: 'inherit', textDecoration: 'none' }}>{t.products}</a>
-                        <Link to="/page/contact" style={{ color: 'inherit', textDecoration: 'none' }}>{t.contact}</Link>
+                        {config.pages?.filter(p => p.header).map(p => (
+                            <Link key={p.id} to={`/page/${p.id}`} style={{ color: 'inherit', textDecoration: 'none' }}>{p.title[language]}</Link>
+                        ))}
                     </div>
 
                     <div style={{ display: 'flex', gap: 16 }}>
@@ -961,14 +1017,17 @@ function App() {
                     </div>
                     <div>
                         <h4 style={{ fontWeight: 600, marginBottom: 20 }}>Customer Service</h4>
-                        <p style={{ marginBottom: 8 }}><Link to="/page/contact" style={{ color: '#9CA3AF', textDecoration: 'none' }}>Contact Us</Link></p>
-                        <p style={{ marginBottom: 8 }}><Link to="/page/shipping" style={{ color: '#9CA3AF', textDecoration: 'none' }}>Shipping Policy</Link></p>
-                        <p style={{ marginBottom: 8 }}><Link to="/page/about" style={{ color: '#9CA3AF', textDecoration: 'none' }}>About Us</Link></p>
+                        {config.pages?.filter(p => p.footer).map(p => (
+                            <p key={p.id} style={{ marginBottom: 8 }}><Link to={`/page/${p.id}`} style={{ color: '#9CA3AF', textDecoration: 'none' }}>{p.title[language]}</Link></p>
+                        ))}
                     </div>
                     <div>
                         <h4 style={{ fontWeight: 600, marginBottom: 20 }}>Follow Us</h4>
                         <div style={{ display: 'flex', gap: 16 }}>
-                            <Instagram /> <Facebook /> <Twitter />
+                            {config.socials?.instagram && <a href={config.socials.instagram} target="_blank" style={{ color: 'inherit' }}><Instagram /></a>}
+                            {config.socials?.facebook && <a href={config.socials.facebook} target="_blank" style={{ color: 'inherit' }}><Facebook /></a>}
+                            {config.socials?.twitter && <a href={config.socials.twitter} target="_blank" style={{ color: 'inherit' }}><Twitter /></a>}
+                            {config.socials?.tiktok && <a href={config.socials.tiktok} target="_blank" style={{ color: 'inherit' }}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 24, height: 24 }}><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" /></svg></a>}
                         </div>
                     </div>
                 </div>
