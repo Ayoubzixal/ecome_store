@@ -18,7 +18,8 @@ const DEFAULT_CONFIG = {
     categories: [
         { id: 'kaftans', label: { en: 'Kaftans', ar: 'قفاطين' }, image: 'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=500' },
         { id: 'djellabas', label: { en: 'Djellabas', ar: 'جلابيب' }, image: 'https://images.unsplash.com/photo-1590735213920-68192a487bc2?w=500' },
-        { id: 'shoes', label: { en: 'Shoes', ar: 'أحذية' }, image: 'https://images.unsplash.com/photo-1608256246200-53e635b5b65f?w=500' }
+        { id: 'shoes', label: { en: 'Shoes', ar: 'أحذية' }, image: 'https://images.unsplash.com/photo-1608256246200-53e635b5b65f?w=500' },
+        { id: 'accessories', label: { en: 'Accessories', ar: 'إكسسوارات' }, image: 'https://images.unsplash.com/photo-1605701250441-2bfa95839417?w=500' }
     ],
     hero: {
         title: { en: "Moroccan Elegance", ar: "أناقة مغربية" },
@@ -39,6 +40,11 @@ const DEFAULT_PRODUCTS = [
     { id: 2, name: { ar: "بلغة فاس الجلدية", en: "Fes Leather Babouche" }, category: "shoes", price: 89, originalPrice: null, image: "https://images.unsplash.com/photo-1608256246200-53e635b5b65f?w=800", badge: "new", description: "Authentic leather slippers made in Fes." },
     { id: 3, name: { ar: "جلابة شتوية", en: "Winter Djellaba" }, category: "djellabas", price: 199, originalPrice: 249, image: "https://images.unsplash.com/photo-1590735213920-68192a487bc2?w=800", badge: "sale", description: "Warm wool djellaba perfect for cold weather." },
     { id: 4, name: { ar: "قفطان عصري", en: "Modern Chic Kaftan" }, category: "kaftans", price: 159, originalPrice: 180, image: "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=800", badge: "new", description: "Contemporary design meets traditional elegance." },
+    { id: 5, name: { ar: "قلادة أمازيغية", en: "Berber Necklace" }, category: "accessories", price: 129, originalPrice: 150, image: "https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=800", badge: "", description: "Vintage silver Berber necklace." },
+    { id: 6, name: { ar: "حقيبة جلدية", en: "Handmade Leather Bag" }, category: "accessories", price: 79, originalPrice: null, image: "https://images.unsplash.com/photo-1590874102051-b54886d9d4e9?w=800", badge: "hot", description: "Classic Moroccan leather satchel." },
+    { id: 7, name: { ar: "طقم شاي", en: "Mint Tea Set" }, category: "accessories", price: 49, originalPrice: 65, image: "https://images.unsplash.com/photo-1577987258079-24709d736440?w=800", badge: "sale", description: "Traditional silver teapot with glasses." },
+    { id: 8, name: { ar: "زربية مغربية", en: "Berber Rug" }, category: "accessories", price: 450, originalPrice: 600, image: "https://images.unsplash.com/photo-1599692484666-62ce98b8c74e?w=800", badge: "premium", description: "Authentic hand-woven wool rug." },
+    { id: 9, name: { ar: "شبشب نسائي", en: "Women's Slippers" }, category: "shoes", price: 45, originalPrice: 55, image: "https://images.unsplash.com/photo-1560769629-975ec94e6a86?w=800", badge: "", description: "Comfortable embroidered slippers." },
 ]
 
 const TRANSLATIONS = {
@@ -904,6 +910,75 @@ function AdminView({ config, setConfig, products, setProducts, orders, setOrders
 
 
 
+function ShopPage({ products, config, onQuickView, onAdd, t }) {
+    const { language } = useApp()
+    const [filterCat, setFilterCat] = useState('all')
+    const [priceRange, setPriceRange] = useState(1000)
+    const [sort, setSort] = useState('newest')
+
+    const filtered = products.filter(p =>
+        (filterCat === 'all' || p.category === filterCat) &&
+        p.price <= priceRange
+    ).sort((a, b) => sort === 'price_asc' ? a.price - b.price : sort === 'price_desc' ? b.price - a.price : b.id - a.id)
+
+    return (
+        <div className="shop-layout">
+            <div className="shop-sidebar">
+                <div style={{ background: 'white', padding: 24, borderRadius: 8, border: '1px solid #eee' }}>
+                    <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 20 }}>Refine Selection</h3>
+
+                    <div style={{ marginBottom: 30 }}>
+                        <h4 style={{ fontWeight: 600, marginBottom: 12 }}>Category</h4>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                            <label style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, fontSize: 14 }}>
+                                <input type="radio" name="cat" checked={filterCat === 'all'} onChange={() => setFilterCat('all')} style={{ accentColor: 'black' }} /> All Production
+                            </label>
+                            {config.categories.map(c => (
+                                <label key={c.id} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, fontSize: 14 }}>
+                                    <input type="radio" name="cat" checked={filterCat === c.id} onChange={() => setFilterCat(c.id)} style={{ accentColor: 'black' }} /> {c.label[language]}
+                                </label>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div>
+                        <div className="flex-between" style={{ marginBottom: 12 }}>
+                            <h4 style={{ fontWeight: 600 }}>Price Range</h4>
+                            <span style={{ fontSize: 13, color: '#666' }}>{priceRange} {config.currency}</span>
+                        </div>
+                        <input type="range" min="0" max="1000" value={priceRange} onChange={e => setPriceRange(Number(e.target.value))} style={{ width: '100%', accentColor: 'black' }} />
+                    </div>
+                </div>
+            </div>
+
+            <div style={{ flex: 1 }}>
+                <div className="flex-between" style={{ marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>
+                    <div>
+                        <h1 style={{ fontSize: 28, fontWeight: 700 }}>{t.shop}</h1>
+                        <p style={{ color: '#666' }}>Showing {filtered.length} items</p>
+                    </div>
+                    <select className="input" style={{ width: 'auto', marginBottom: 0 }} value={sort} onChange={e => setSort(e.target.value)}>
+                        <option value="newest">Newest Arrivals</option>
+                        <option value="price_asc">Price: Low to High</option>
+                        <option value="price_desc">Price: High to Low</option>
+                    </select>
+                </div>
+
+                {filtered.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: 60, color: '#999', background: '#F9FAFB', borderRadius: 8 }}>
+                        <h3>No products match your filters.</h3>
+                        <button onClick={() => { setFilterCat('all'); setPriceRange(1000) }} style={{ color: 'black', textDecoration: 'underline', marginTop: 8 }}>Clear Filters</button>
+                    </div>
+                ) : (
+                    <div className="grid-products">
+                        {filtered.map(p => <ProductCard key={p.id} product={p} onQuickView={onQuickView} onAdd={onAdd} />)}
+                    </div>
+                )}
+            </div>
+        </div>
+    )
+}
+
 function Home({ products, config, onQuickView, onAdd, t }) {
     const language = useApp().language
     return (
@@ -912,13 +987,15 @@ function Home({ products, config, onQuickView, onAdd, t }) {
                 <div>
                     <h1 className="animate-slide">{config.hero.title[language]}</h1>
                     <p style={{ fontSize: '1.2rem', marginBottom: 32, opacity: 0.9 }}>{config.hero.subtitle[language]}</p>
-                    <a href="#shop" className="btn btn-primary" style={{ padding: '12px 32px', fontSize: 18 }}>{t.shopNow}</a>
+                    <Link to="/shop" className="btn btn-primary" style={{ padding: '12px 32px', fontSize: 18, textDecoration: 'none' }}>Explore Collection</Link>
                 </div>
             </div>
 
             <div id="categories" className="container" style={{ margin: '60px auto' }}>
-                <h2 style={{ fontSize: 28, fontWeight: 700, marginBottom: 32, textAlign: 'center' }}>{t.categories}</h2>
-                <div className="grid-3">
+                <div className="flex-between" style={{ marginBottom: 32 }}>
+                    <h2 style={{ fontSize: 24, fontWeight: 700 }}>{t.categories}</h2>
+                </div>
+                <div className="grid-3" style={{ gridTemplateColumns: `repeat(auto-fit, minmax(250px, 1fr))` }}>
                     {config.categories.map(cat => (
                         <div key={cat.id} className="cat-card">
                             <img src={cat.image} alt={cat.label.en} />
@@ -930,13 +1007,26 @@ function Home({ products, config, onQuickView, onAdd, t }) {
                 </div>
             </div>
 
-            <div id="shop" className="container" style={{ marginBottom: 100 }}>
+            <div className="container" style={{ marginBottom: 80 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 24 }}>
+                    <div style={{ position: 'relative', height: 400, borderRadius: 12, overflow: 'hidden', cursor: 'pointer' }} className="group">
+                        <img src="https://images.unsplash.com/photo-1548690312-e3b507d8c110?w=800" style={{ width: '100%', height: '100%', objectFit: 'cover', transition: '0.5s' }} className="group-hover:scale-105" />
+                        <div className="cat-overlay"><h3>Artisan Crafts</h3></div>
+                    </div>
+                    <div style={{ position: 'relative', height: 400, borderRadius: 12, overflow: 'hidden', cursor: 'pointer' }} className="group">
+                        <img src="https://images.unsplash.com/photo-1532453288672-3a27e9be9efd?w=800" style={{ width: '100%', height: '100%', objectFit: 'cover', transition: '0.5s' }} className="group-hover:scale-105" />
+                        <div className="cat-overlay"><h3>Modern Elegance</h3></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="featured" className="container" style={{ marginBottom: 100 }}>
                 <div className="flex-between" style={{ marginBottom: 32 }}>
-                    <h2 style={{ fontSize: 28, fontWeight: 700 }}>{t.featured}</h2>
-                    <button className="btn btn-outline">{t.viewAll}</button>
+                    <h2 style={{ fontSize: 24, fontWeight: 700 }}>{t.featured}</h2>
+                    <Link to="/shop" className="btn btn-outline" style={{ textDecoration: 'none' }}>{t.viewAll}</Link>
                 </div>
                 <div className="grid-products">
-                    {products.map(p => <ProductCard key={p.id} product={p} onQuickView={onQuickView} onAdd={onAdd} />)}
+                    {products.slice(0, 8).map(p => <ProductCard key={p.id} product={p} onQuickView={onQuickView} onAdd={onAdd} />)}
                 </div>
             </div>
         </>
@@ -964,8 +1054,8 @@ function DynamicPage() {
 
 function App() {
     const [language, setLanguage] = useState('en')
-    const [config, setConfig] = useStickyState(DEFAULT_CONFIG, 'config_v7')
-    const [products, setProducts] = useStickyState(DEFAULT_PRODUCTS, 'products_v3')
+    const [config, setConfig] = useStickyState(DEFAULT_CONFIG, 'config_v8')
+    const [products, setProducts] = useStickyState(DEFAULT_PRODUCTS, 'products_v4')
     const [orders, setOrders] = useStickyState([], 'orders_v3')
     const [cart, setCart] = useState([])
     const [cartOpen, setCartOpen] = useState(false)
@@ -991,8 +1081,9 @@ function App() {
                     </Link>
 
                     <div className="desktop-nav" style={{ gap: 24, fontWeight: 500 }}>
+                        <Link to="/" className="nav-link">{t.home}</Link>
+                        <Link to="/shop" className="nav-link">{t.shop}</Link>
                         <a href="/#categories" className="nav-link">{t.categories}</a>
-                        <a href="/#shop" className="nav-link">{t.products}</a>
                         {config.pages?.filter(p => p.header).map(p => (
                             <Link key={p.id} to={`/page/${p.id}`} className="nav-link">{p.title[language]}</Link>
                         ))}
@@ -1048,6 +1139,12 @@ function App() {
                     <Route path={config.adminUrl} element={<AdminView config={config} setConfig={setConfig} products={products} setProducts={setProducts} orders={orders} setOrders={setOrders} t={t} />} />
 
                     <Route path="/page/:id" element={<PageLayout><DynamicPage /></PageLayout>} />
+
+                    <Route path="/shop" element={
+                        <PageLayout>
+                            <ShopPage products={products} config={config} onQuickView={setViewProduct} onAdd={addToCart} t={t} />
+                        </PageLayout>
+                    } />
 
                     <Route path="/" element={
                         <PageLayout>
