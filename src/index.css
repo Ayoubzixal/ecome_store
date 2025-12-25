@@ -338,3 +338,33 @@ select {
   border-radius: 12px;
   border: 1px solid #E5E7EB;
 }
+
+/* Admin Mobile */
+@media(max-width: 768px) {
+  .admin-sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+    z-index: 999;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .admin-sidebar.open {
+    transform: translateX(0);
+  }
+
+  .admin-main {
+    margin-left: 0 !important;
+    padding: 16px !important;
+  }
+
+  .grid-products {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+.overlay-mobile {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 998;
+}

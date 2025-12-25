@@ -1,6 +1,6 @@
 import { useState, useEffect, createContext, useContext } from 'react'
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom'
-import { ShoppingCart, Heart, Search, Menu, X, Plus, Minus, Trash2, Edit, Package, Truck, Shield, Headphones, ArrowRight, Instagram, Facebook, Twitter, Globe, Lock, ShoppingBag, Settings, LogOut, CheckCircle, AlertCircle, Percent, BarChart, Tag, MessageCircle, Eye, Share2 } from 'lucide-react'
+import { ShoppingCart, Heart, Search, Menu, X, Plus, Minus, Trash2, Edit, Package, Truck, Shield, Headphones, ArrowRight, Instagram, Facebook, Twitter, Globe, Lock, ShoppingBag, Settings, LogOut, CheckCircle, AlertCircle, Percent, BarChart, Tag, MessageCircle, Eye, Share2, DollarSign, Users, Calendar, FileText, Printer, ChevronRight, XCircle, Image as ImageIcon, Save, Key } from 'lucide-react'
 
 // ========================================
 // CONFIG & CONSTANTS
@@ -9,7 +9,7 @@ const DEFAULT_CONFIG = {
     storeName: 'MarocBoutique',
     whatsappNumber: '212600000000',
     adminPassword: 'seller2024',
-    adminUrl: '/manage-store-2025',
+    adminUrl: '/Ayoub',
     currency: 'USD',
     announcement: '✨ Free Shipping on All Orders Over $150! ✨',
     pixelId: '',
@@ -71,7 +71,7 @@ function useStickyState(defaultValue, key) {
 }
 
 // ========================================
-// COMPONENTS
+// UI COMPONENTS
 // ========================================
 
 function ProductModal({ product, onClose, onAdd }) {
@@ -210,11 +210,402 @@ function CartDrawer({ isOpen, onClose, cart, updateQty, remove, config, t }) {
     )
 }
 
+// ========================================
+// ADMIN COMPONENTS
+// ========================================
+
+function AdminDashboard({ orders, products, config, t }) {
+    const totalSales = orders.reduce((sum, o) => sum + parseFloat(o.total || 0), 0)
+    const avgOrder = orders.length ? (totalSales / orders.length).toFixed(2) : 0
+
+    const stats = [
+        { label: 'Total Revenue', value: `${totalSales} ${config.currency}`, icon: <DollarSign size={24} color="#10B981" />, change: '+12%' },
+        { label: 'Total Orders', value: orders.length, icon: <ShoppingBag size={24} color="#3B82F6" />, change: '+5%' },
+        { label: 'Avg Order Value', value: `${avgOrder} ${config.currency}`, icon: <BarChart size={24} color="#F59E0B" />, change: '+2%' },
+        { label: 'Products', value: products.length, icon: <Package size={24} color="#EC4899" />, change: '0%' }
+    ]
+
+    return (
+        <div>
+            <h2 style={{ fontSize: 28, fontWeight: 700, marginBottom: 24 }}>Dashboard Overview</h2>
+            <div className="grid-products" style={{ marginBottom: 32 }}>
+                {stats.map((s, i) => (
+                    <div key={i} className="card" style={{ padding: 24 }}>
+                        <div className="flex-between" style={{ marginBottom: 16 }}>
+                            <div style={{ width: 48, height: 48, borderRadius: 12, background: '#F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{s.icon}</div>
+                            <span style={{ fontSize: 13, color: 'green', background: '#DCFCE7', padding: '4px 8px', borderRadius: 20 }}>{s.change}</span>
+                        </div>
+                        <p style={{ color: '#666', fontSize: 13, fontWeight: 500 }}>{s.label}</p>
+                        <h3 style={{ fontSize: 24, fontWeight: 700 }}>{s.value}</h3>
+                    </div>
+                ))}
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 24 }}>
+                <div className="card" style={{ padding: 24 }}>
+                    <h3 style={{ marginBottom: 20 }}>Sales Overview</h3>
+                    <div style={{ height: 200, display: 'flex', alignItems: 'flex-end', gap: 12 }}>
+                        {[40, 60, 35, 80, 55, 90, 70].map((h, i) => (
+                            <div key={i} style={{ flex: 1, background: i === 6 ? 'var(--primary)' : '#E5E7EB', height: `${h}%`, borderRadius: 4, transition: '0.3s' }} title={`Day ${i + 1}`} />
+                        ))}
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 12, color: '#999', fontSize: 12 }}>
+                        <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+                    </div>
+                </div>
+                <div className="card" style={{ padding: 24 }}>
+                    <h3 style={{ marginBottom: 20 }}>Recent Orders</h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                        {orders.slice(0, 5).map(o => (
+                            <div key={o.id} className="flex-between">
+                                <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                                    <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <ShoppingBag size={18} />
+                                    </div>
+                                    <div>
+                                        <p style={{ fontWeight: 600, fontSize: 14 }}>{o.customer.name}</p>
+                                        <p style={{ fontSize: 12, color: '#888' }}>{o.id}</p>
+                                    </div>
+                                </div>
+                                <div style={{ textAlign: 'right' }}>
+                                    <p style={{ fontWeight: 600, fontSize: 14 }}>{o.total} {config.currency}</p>
+                                    <span style={{ fontSize: 11, color: o.status === 'completed' ? 'green' : 'orange' }}>{o.status}</span>
+                                </div>
+                            </div>
+                        ))}
+                        {orders.length === 0 && <p style={{ color: '#999', fontSize: 13 }}>No recent orders.</p>}
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
+}
+
+function AdminOrders({ orders, setOrders, config }) {
+    const [search, setSearch] = useState('')
+    const [filter, setFilter] = useState('all')
+    const [selectedOrder, setSelectedOrder] = useState(null)
+
+    const filtered = orders.filter(o =>
+        (filter === 'all' || (o.status || 'pending') === filter) &&
+        (o.customer.name.toLowerCase().includes(search.toLowerCase()) || o.id.toString().includes(search))
+    )
+
+    const updateStatus = (id, status) => {
+        setOrders(orders.map(o => o.id === id ? { ...o, status } : o))
+        if (selectedOrder && selectedOrder.id === id) setSelectedOrder({ ...selectedOrder, status })
+    }
+
+    return (
+        <div>
+            <div className="flex-between" style={{ marginBottom: 24 }}>
+                <h2 style={{ fontSize: 28, fontWeight: 700 }}>Orders</h2>
+                <div style={{ display: 'flex', gap: 12 }}>
+                    <select className="input" value={filter} onChange={e => setFilter(e.target.value)} style={{ width: 150, marginBottom: 0 }}>
+                        <option value="all">All Status</option>
+                        <option value="pending">Pending</option>
+                        <option value="shipped">Shipped</option>
+                        <option value="completed">Completed</option>
+                    </select>
+                    <div style={{ position: 'relative' }}>
+                        <Search size={18} style={{ position: 'absolute', left: 10, top: 12, color: '#999' }} />
+                        <input className="input" placeholder="Search orders..." value={search} onChange={e => setSearch(e.target.value)} style={{ width: 250, paddingLeft: 36, marginBottom: 0 }} />
+                    </div>
+                </div>
+            </div>
+
+            <div className="card">
+                <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
+                    <thead style={{ background: '#f9fafb', borderBottom: '1px solid #eee' }}>
+                        <tr><th style={{ padding: 16 }}>Order ID</th><th style={{ padding: 16 }}>Customer</th><th style={{ padding: 16 }}>Date</th><th style={{ padding: 16 }}>Total</th><th style={{ padding: 16 }}>Status</th><th style={{ padding: 16 }}>Action</th></tr>
+                    </thead>
+                    <tbody>
+                        {filtered.length === 0 ? <tr><td colSpan={6} style={{ padding: 24, textAlign: 'center', color: '#888' }}>No orders found</td></tr> : filtered.map(o => (
+                            <tr key={o.id} style={{ borderBottom: '1px solid #eee', cursor: 'pointer' }} onClick={() => setSelectedOrder(o)} className="hover:bg-gray-50">
+                                <td style={{ padding: 16, fontWeight: 500 }}>#{o.id}</td>
+                                <td style={{ padding: 16 }}>
+                                    <div style={{ fontWeight: 500 }}>{o.customer.name}</div>
+                                    <div style={{ fontSize: 12, color: '#888' }}>{o.customer.phone}</div>
+                                </td>
+                                <td style={{ padding: 16, color: '#666' }}>{new Date().toLocaleDateString()}</td>
+                                <td style={{ padding: 16, fontWeight: 600 }}>{o.total} {config.currency}</td>
+                                <td style={{ padding: 16 }}>
+                                    <span style={{
+                                        padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600, textTransform: 'uppercase',
+                                        background: o.status === 'completed' ? '#DCFCE7' : o.status === 'shipped' ? '#DBEAFE' : '#FEF3C7',
+                                        color: o.status === 'completed' ? '#166534' : o.status === 'shipped' ? '#1E40AF' : '#92400E'
+                                    }}>{o.status || 'Pending'}</span>
+                                </td>
+                                <td style={{ padding: 16 }}>
+                                    <button className="icon-btn" style={{ width: 32, height: 32 }}><ChevronRight size={16} /></button>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+
+            {selectedOrder && (
+                <div className="modal-overlay" onClick={() => setSelectedOrder(null)}>
+                    <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: 600, display: 'block' }}>
+                        <div className="flex-between" style={{ padding: 20, borderBottom: '1px solid #eee' }}>
+                            <h3 style={{ fontSize: 20 }}>Order #{selectedOrder.id}</h3>
+                            <button onClick={() => setSelectedOrder(null)}><X /></button>
+                        </div>
+                        <div style={{ padding: 24 }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, marginBottom: 24 }}>
+                                <div>
+                                    <h4 style={{ fontSize: 14, color: '#888', marginBottom: 8 }}>Customer</h4>
+                                    <p style={{ fontWeight: 600 }}>{selectedOrder.customer.name}</p>
+                                    <p>{selectedOrder.customer.phone}</p>
+                                    <p style={{ fontSize: 13, color: '#666', marginTop: 4 }}>{selectedOrder.customer.address}</p>
+                                </div>
+                                <div style={{ textAlign: 'right' }}>
+                                    <h4 style={{ fontSize: 14, color: '#888', marginBottom: 8 }}>Order Status</h4>
+                                    <select className="input" value={selectedOrder.status || 'pending'} onChange={e => updateStatus(selectedOrder.id, e.target.value)} style={{ width: 'auto', display: 'inline-block' }}>
+                                        <option value="pending">Pending</option>
+                                        <option value="shipped">Shipped</option>
+                                        <option value="completed">Completed</option>
+                                        <option value="cancelled">Cancelled</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div style={{ background: '#F9FAFB', borderRadius: 8, padding: 16, marginBottom: 24 }}>
+                                {selectedOrder.items && selectedOrder.items.map((item, i) => (
+                                    <div key={i} className="flex-between" style={{ marginBottom: 8, fontSize: 14 }}>
+                                        <span>{item.name.en || item.name} (x{item.qty})</span>
+                                        <span>{(item.price * item.qty).toFixed(2)}</span>
+                                    </div>
+                                ))}
+                                <div className="flex-between" style={{ marginTop: 16, paddingTop: 16, borderTop: '1px dashed #ddd', fontWeight: 700, fontSize: 18 }}>
+                                    <span>Total</span>
+                                    <span>{selectedOrder.total} {config.currency}</span>
+                                </div>
+                            </div>
+
+                            <div className="flex-between">
+                                <button className="btn btn-outline" style={{ gap: 8 }} onClick={() => alert('Printing Invoice...')}>
+                                    <Printer size={18} /> Print Invoice
+                                </button>
+                                <button className="btn btn-primary" style={{ background: '#25D366', border: 'none', gap: 8 }} onClick={() => window.open(`https://wa.me/${selectedOrder.customer.phone}`, '_blank')}>
+                                    <MessageCircle size={18} /> Contact Customer
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    )
+}
+
+function AdminProducts({ products, setProducts, config }) {
+    const [search, setSearch] = useState('')
+    const [editing, setEditing] = useState(null)
+
+    const filtered = products.filter(p => (p.name.en.toLowerCase().includes(search.toLowerCase()) || p.name.ar.includes(search)))
+
+    const handleDelete = (id) => {
+        if (confirm('Are you sure you want to delete this product?')) {
+            setProducts(products.filter(p => p.id !== id))
+        }
+    }
+
+    const handleSave = (e) => {
+        e.preventDefault()
+        if (!editing.name.en || !editing.price) return alert('Please fill required fields')
+
+        if (editing.id) {
+            setProducts(products.map(p => p.id === editing.id ? editing : p))
+        } else {
+            setProducts([...products, { ...editing, id: Date.now() }])
+        }
+        setEditing(null)
+    }
+
+    const openEdit = (p) => setEditing({ ...p })
+    const openNew = () => setEditing({ id: null, name: { en: '', ar: '' }, price: '', originalPrice: '', category: 'kaftans', image: '', description: '', badge: '' })
+
+    if (editing) {
+        return (
+            <div className="card" style={{ padding: 24, maxWidth: 800, margin: '0 auto' }}>
+                <h3 style={{ fontSize: 24, marginBottom: 24 }}>{editing.id ? 'Edit Product' : 'Add New Product'}</h3>
+                <form onSubmit={handleSave}>
+                    <div className="grid-2">
+                        <div>
+                            <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 500 }}>Name (English)</label>
+                            <input className="input" required value={editing.name.en} onChange={e => setEditing({ ...editing, name: { ...editing.name, en: e.target.value } })} />
+                        </div>
+                        <div>
+                            <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 500 }}>Name (Arabic)</label>
+                            <input className="input" required value={editing.name.ar} onChange={e => setEditing({ ...editing, name: { ...editing.name, ar: e.target.value } })} style={{ textAlign: 'right' }} />
+                        </div>
+                    </div>
+
+                    <div className="grid-2">
+                        <div>
+                            <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 500 }}>Price ({config.currency})</label>
+                            <input className="input" type="number" required value={editing.price} onChange={e => setEditing({ ...editing, price: e.target.value })} />
+                        </div>
+                        <div>
+                            <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 500 }}>Original Price (Optional)</label>
+                            <input className="input" type="number" value={editing.originalPrice} onChange={e => setEditing({ ...editing, originalPrice: e.target.value })} />
+                        </div>
+                    </div>
+
+                    <div className="grid-2">
+                        <div>
+                            <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 500 }}>Category</label>
+                            <select className="input" value={editing.category} onChange={e => setEditing({ ...editing, category: e.target.value })}>
+                                {CATEGORIES.map(c => <option key={c.id} value={c.id}>{c.label.en}</option>)}
+                                <option value="accessories">Accessories</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 500 }}>Badge (e.g. New, Sale)</label>
+                            <input className="input" value={editing.badge} onChange={e => setEditing({ ...editing, badge: e.target.value })} />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 500 }}>Image URL</label>
+                        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                            <input className="input" required value={editing.image} onChange={e => setEditing({ ...editing, image: e.target.value })} style={{ marginBottom: 0 }} />
+                            {editing.image && <img src={editing.image} style={{ width: 40, height: 40, borderRadius: 4, objectFit: 'cover' }} />}
+                        </div>
+                        <p style={{ fontSize: 12, color: '#888', marginTop: 4 }}>Paste a URL from Unsplash or your hosting.</p>
+                    </div>
+
+                    <div style={{ marginTop: 16 }}>
+                        <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 500 }}>Description</label>
+                        <textarea className="input" rows={4} value={editing.description} onChange={e => setEditing({ ...editing, description: e.target.value })} />
+                    </div>
+
+                    <div className="flex-between" style={{ marginTop: 24 }}>
+                        <button type="button" onClick={() => setEditing(null)} className="btn btn-outline">Cancel</button>
+                        <button type="submit" className="btn btn-primary" style={{ gap: 8 }}><Save size={18} /> Save Product</button>
+                    </div>
+                </form>
+            </div>
+        )
+    }
+
+    return (
+        <div>
+            <div className="flex-between" style={{ marginBottom: 24 }}>
+                <h2 style={{ fontSize: 28, fontWeight: 700 }}>Products</h2>
+                <div style={{ display: 'flex', gap: 12 }}>
+                    <div style={{ position: 'relative' }}>
+                        <Search size={18} style={{ position: 'absolute', left: 10, top: 12, color: '#999' }} />
+                        <input className="input" placeholder="Search products..." value={search} onChange={e => setSearch(e.target.value)} style={{ width: 250, paddingLeft: 36, marginBottom: 0 }} />
+                    </div>
+                    <button onClick={openNew} className="btn btn-primary" style={{ gap: 8 }}><Plus size={18} /> Add Product</button>
+                </div>
+            </div>
+
+            <div className="card">
+                <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
+                    <thead style={{ background: '#f9fafb', borderBottom: '1px solid #eee' }}>
+                        <tr><th style={{ padding: 16 }}>Product</th><th style={{ padding: 16 }}>Category</th><th style={{ padding: 16 }}>Price</th><th style={{ padding: 16 }}>Status</th><th style={{ padding: 16 }}>Actions</th></tr>
+                    </thead>
+                    <tbody>
+                        {filtered.map(p => (
+                            <tr key={p.id} style={{ borderBottom: '1px solid #eee' }} className="hover:bg-gray-50">
+                                <td style={{ padding: 16 }}>
+                                    <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                                        <img src={p.image} style={{ width: 48, height: 48, borderRadius: 6, objectFit: 'cover' }} />
+                                        <div>
+                                            <div style={{ fontWeight: 500 }}>{p.name.en}</div>
+                                            <div style={{ fontSize: 12, color: '#888' }}>{p.name.ar}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td style={{ padding: 16, textTransform: 'capitalize' }}>{p.category}</td>
+                                <td style={{ padding: 16, fontWeight: 600 }}>{p.price} {config.currency}</td>
+                                <td style={{ padding: 16 }}>{p.badge ? <span className="badge" style={{ background: '#000', position: 'static' }}>{p.badge}</span> : <span style={{ color: '#888' }}>-</span>}</td>
+                                <td style={{ padding: 16 }}>
+                                    <div style={{ display: 'flex', gap: 8 }}>
+                                        <button onClick={() => openEdit(p)} className="icon-btn" style={{ width: 32, height: 32 }}><Edit size={16} /></button>
+                                        <button onClick={() => handleDelete(p.id)} className="icon-btn" style={{ width: 32, height: 32, color: 'red' }}><Trash2 size={16} /></button>
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    )
+}
+
+function AdminSettings({ config, setConfig }) {
+    const [local, setLocal] = useState({ ...config })
+
+    const handleSave = () => {
+        setConfig(local)
+        alert('Settings Saved Successfully')
+    }
+
+    return (
+        <div style={{ maxWidth: 600, margin: '0 auto' }}>
+            <h2 style={{ fontSize: 24, marginBottom: 24, fontWeight: 700 }}>Store Settings</h2>
+
+            <div className="card" style={{ padding: 24, marginBottom: 24 }}>
+                <h3 style={{ marginBottom: 16 }}>General Info</h3>
+                <div style={{ marginBottom: 16 }}>
+                    <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 500 }}>Store Name</label>
+                    <input className="input" value={local.storeName} onChange={e => setLocal({ ...local, storeName: e.target.value })} />
+                </div>
+                <div className="grid-2">
+                    <div>
+                        <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 500 }}>Currency</label>
+                        <select className="input" value={local.currency} onChange={e => setLocal({ ...local, currency: e.target.value })}>
+                            <option value="USD">USD ($)</option>
+                            <option value="MAD">MAD (DH)</option>
+                            <option value="EUR">EUR (€)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 500 }}>WhatsApp Number</label>
+                        <input className="input" value={local.whatsappNumber} onChange={e => setLocal({ ...local, whatsappNumber: e.target.value })} />
+                    </div>
+                </div>
+            </div>
+
+            <div className="card" style={{ padding: 24, marginBottom: 24 }}>
+                <h3 style={{ marginBottom: 16 }}>Security</h3>
+                <div>
+                    <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 500 }}>Admin URL</label>
+                    <input className="input" value={local.adminUrl} onChange={e => setLocal({ ...local, adminUrl: e.target.value })} />
+                </div>
+                <div style={{ marginTop: 16 }}>
+                    <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 500 }}>Admin Password</label>
+                    <div style={{ display: 'flex', gap: 12 }}>
+                        <input className="input" type="text" value={local.adminPassword} onChange={e => setLocal({ ...local, adminPassword: e.target.value })} style={{ marginBottom: 0 }} />
+                    </div>
+                    <p style={{ fontSize: 12, color: 'orange', marginTop: 8 }}>* Keep this password safe. It is your only access key.</p>
+                </div>
+            </div>
+
+            <div className="card" style={{ padding: 24 }}>
+                <h3 style={{ marginBottom: 16 }}>Tracking</h3>
+                <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 500 }}>Facebook Pixel ID</label>
+                <input className="input" value={local.pixelId} onChange={e => setLocal({ ...local, pixelId: e.target.value })} placeholder="e.g. 1234567890" />
+            </div>
+
+            <div style={{ marginTop: 32, textAlign: 'right' }}>
+                <button className="btn btn-primary" onClick={handleSave} style={{ padding: '12px 32px', fontSize: 16 }}>Save All Changes</button>
+            </div>
+        </div>
+    )
+}
+
 function AdminView({ config, setConfig, products, setProducts, orders, setOrders, t }) {
-    const [tab, setTab] = useState('orders')
+    const [tab, setTab] = useState('dashboard')
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
     const [newPromo, setNewPromo] = useState({ code: '', discount: '' })
 
-    const updateOrderStatus = (id, status) => setOrders(orders.map(o => o.id === id ? { ...o, status } : o))
+    // const updateOrderStatus = (id, status) => setOrders(orders.map(o => o.id === id ? { ...o, status } : o)) // Moved to AdminOrders
 
     const addPromo = () => {
         if (!newPromo.code || !newPromo.discount) return alert('Please enter code and discount')
@@ -225,43 +616,34 @@ function AdminView({ config, setConfig, products, setProducts, orders, setOrders
 
     return (
         <div style={{ display: 'flex', minHeight: '100vh', background: '#f3f4f6' }}>
-            <div className="admin-sidebar hidden-mobile">
-                <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 40 }}>Store Manager</div>
+            {mobileMenuOpen && <div className="overlay-mobile" onClick={() => setMobileMenuOpen(false)} />}
+
+            <div className={`admin-sidebar ${mobileMenuOpen ? 'open' : ''}`}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 40 }}>
+                    <div style={{ fontSize: 20, fontWeight: 700 }}>Store Manager</div>
+                    <button className="md:hidden" onClick={() => setMobileMenuOpen(false)}><X size={20} /></button>
+                </div>
+
                 {['dashboard', 'orders', 'products', 'marketing', 'settings'].map(item => (
-                    <button key={item} onClick={() => setTab(item)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px', width: '100%', textAlign: 'left', borderRadius: 8, marginBottom: 4, background: tab === item ? '#000' : 'transparent', color: tab === item ? '#fff' : '#666' }}>
+                    <button key={item} onClick={() => { setTab(item); setMobileMenuOpen(false) }} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px', width: '100%', textAlign: 'left', borderRadius: 8, marginBottom: 4, background: tab === item ? '#000' : 'transparent', color: tab === item ? '#fff' : '#666' }}>
                         {item.charAt(0).toUpperCase() + item.slice(1)}
                     </button>
                 ))}
             </div>
+
             <div className="admin-main" style={{ flex: 1, marginLeft: 260 }}>
-                {tab === 'orders' && (
-                    <div>
-                        <h2 style={{ fontSize: 24, marginBottom: 24 }}>Recent Orders</h2>
-                        <div className="card">
-                            <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
-                                <thead style={{ background: '#f9fafb', borderBottom: '1px solid #eee' }}>
-                                    <tr><th style={{ padding: 16 }}>Order ID</th><th style={{ padding: 16 }}>Customer</th><th style={{ padding: 16 }}>Total</th><th style={{ padding: 16 }}>Status</th></tr>
-                                </thead>
-                                <tbody>
-                                    {orders.map(o => (
-                                        <tr key={o.id} style={{ borderBottom: '1px solid #eee' }}>
-                                            <td style={{ padding: 16 }}>{o.id}</td>
-                                            <td style={{ padding: 16 }}>{o.customer.name}</td>
-                                            <td style={{ padding: 16 }}>{o.total} {config.currency}</td>
-                                            <td style={{ padding: 16 }}>
-                                                <select value={o.status || 'pending'} onChange={(e) => updateOrderStatus(o.id, e.target.value)} style={{ padding: 6, borderRadius: 4, border: '1px solid #ddd' }}>
-                                                    <option value="pending">Pending</option>
-                                                    <option value="shipped">Shipped</option>
-                                                    <option value="completed">Completed</option>
-                                                </select>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                )}
+                <div className="md:hidden" style={{ marginBottom: 20 }}>
+                    <button onClick={() => setMobileMenuOpen(true)} className="btn btn-outline" style={{ padding: '8px 12px' }}><Menu size={20} /> Menu</button>
+                </div>
+
+                {tab === 'dashboard' && <AdminDashboard orders={orders} products={products} config={config} t={t} />}
+
+                {tab === 'orders' && <AdminOrders orders={orders} setOrders={setOrders} config={config} />}
+
+                {tab === 'products' && <AdminProducts products={products} setProducts={setProducts} config={config} />}
+
+                {tab === 'settings' && <AdminSettings config={config} setConfig={setConfig} />}
+
                 {tab === 'marketing' && (
                     <div>
                         <h2 style={{ fontSize: 24, marginBottom: 24 }}>Marketing Tools</h2>
@@ -289,10 +671,6 @@ function AdminView({ config, setConfig, products, setProducts, orders, setOrders
                         </div>
                     </div>
                 )}
-                {/* Add other tabs simplified */}
-                {tab === 'products' && <h2>Products Management (Coming Soon)</h2>}
-                {tab === 'dashboard' && <h2>Dashboard Overview (Coming Soon)</h2>}
-                {tab === 'settings' && <h2>Settings (Coming Soon)</h2>}
             </div>
         </div>
     )
@@ -335,9 +713,6 @@ function Home({ products, onQuickView, onAdd, t }) {
     )
 }
 
-// ========================================
-// APP ROUTER
-// ========================================
 function App() {
     const [language, setLanguage] = useState('en')
     const [config, setConfig] = useStickyState(DEFAULT_CONFIG, 'config_v3')
@@ -389,7 +764,6 @@ function App() {
                                         <h4 style={{ fontWeight: 600, marginBottom: 20 }}>Customer Service</h4>
                                         <p style={{ color: '#9CA3AF', marginBottom: 8 }}>Contact Us</p>
                                         <p style={{ color: '#9CA3AF', marginBottom: 8 }}>Shipping Policy</p>
-                                        <p style={{ color: '#9CA3AF' }}>Returns & Exchanges</p>
                                     </div>
                                     <div>
                                         <h4 style={{ fontWeight: 600, marginBottom: 20 }}>Follow Us</h4>
@@ -402,7 +776,6 @@ function App() {
 
                             <ProductModal product={viewProduct} onClose={() => setViewProduct(null)} onAdd={addToCart} />
                             <CartDrawer isOpen={cartOpen} onClose={() => setCartOpen(false)} cart={cart} updateQty={(id, q) => setCart(prev => q <= 0 ? prev.filter(i => i.id !== id) : prev.map(i => i.id === id ? { ...i, qty: q } : i))} remove={id => setCart(prev => prev.filter(i => i.id !== id))} config={config} t={t} />
-
                             <a href={`https://wa.me/${config.whatsappNumber}`} target="_blank" style={{ position: 'fixed', bottom: 30, right: 30, background: '#25D366', padding: 16, borderRadius: '50%', boxShadow: '0 10px 15px rgba(0,0,0,0.1)', zIndex: 90 }}>
                                 <MessageCircle size={32} color="white" fill="white" />
                             </a>
