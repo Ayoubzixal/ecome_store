@@ -990,11 +990,11 @@ function App() {
                         {config.logoUrl ? <img src={config.logoUrl} alt={config.storeName} style={{ height: 40 }} /> : <div style={{ fontWeight: 800, fontSize: 20, letterSpacing: -0.5 }}>{config.storeName}</div>}
                     </Link>
 
-                    <div className="md:hidden flex" style={{ gap: 20, fontWeight: 500 }}>
-                        <a href="/#categories" style={{ color: 'inherit', textDecoration: 'none' }}>{t.categories}</a>
-                        <a href="/#shop" style={{ color: 'inherit', textDecoration: 'none' }}>{t.products}</a>
+                    <div className="desktop-nav" style={{ gap: 24, fontWeight: 500 }}>
+                        <a href="/#categories" className="nav-link">{t.categories}</a>
+                        <a href="/#shop" className="nav-link">{t.products}</a>
                         {config.pages?.filter(p => p.header).map(p => (
-                            <Link key={p.id} to={`/page/${p.id}`} style={{ color: 'inherit', textDecoration: 'none' }}>{p.title[language]}</Link>
+                            <Link key={p.id} to={`/page/${p.id}`} className="nav-link">{p.title[language]}</Link>
                         ))}
                     </div>
 
@@ -1012,22 +1012,22 @@ function App() {
             <footer style={{ background: '#111827', color: 'white', padding: '60px 0', marginTop: 60 }}>
                 <div className="container grid-3" style={{ gap: 60 }}>
                     <div>
-                        <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 20 }}>{config.storeName}</h3>
+                        {config.logoUrl ? <img src={config.logoUrl} alt={config.storeName} style={{ height: 60, marginBottom: 16 }} /> : <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 20 }}>{config.storeName}</h3>}
                         <p style={{ color: '#9CA3AF', lineHeight: 1.6 }}>Authentic Moroccan craftsmanship delivered to your doorstep. Experience the luxury of tradition.</p>
                     </div>
                     <div>
                         <h4 style={{ fontWeight: 600, marginBottom: 20 }}>Customer Service</h4>
                         {config.pages?.filter(p => p.footer).map(p => (
-                            <p key={p.id} style={{ marginBottom: 8 }}><Link to={`/page/${p.id}`} style={{ color: '#9CA3AF', textDecoration: 'none' }}>{p.title[language]}</Link></p>
+                            <p key={p.id} style={{ marginBottom: 8 }}><Link to={`/page/${p.id}`} className="nav-link" style={{ fontSize: 14, color: '#9CA3AF' }}>{p.title[language]}</Link></p>
                         ))}
                     </div>
                     <div>
                         <h4 style={{ fontWeight: 600, marginBottom: 20 }}>Follow Us</h4>
-                        <div style={{ display: 'flex', gap: 16 }}>
-                            {config.socials?.instagram && <a href={config.socials.instagram} target="_blank" style={{ color: 'inherit' }}><Instagram /></a>}
-                            {config.socials?.facebook && <a href={config.socials.facebook} target="_blank" style={{ color: 'inherit' }}><Facebook /></a>}
-                            {config.socials?.twitter && <a href={config.socials.twitter} target="_blank" style={{ color: 'inherit' }}><Twitter /></a>}
-                            {config.socials?.tiktok && <a href={config.socials.tiktok} target="_blank" style={{ color: 'inherit' }}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 24, height: 24 }}><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" /></svg></a>}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                            {config.socials?.instagram && <a href={config.socials.instagram} target="_blank" className="social-item"><Instagram size={18} /> Instagram</a>}
+                            {config.socials?.facebook && <a href={config.socials.facebook} target="_blank" className="social-item"><Facebook size={18} /> Facebook</a>}
+                            {config.socials?.twitter && <a href={config.socials.twitter} target="_blank" className="social-item"><Twitter size={18} /> Twitter/X</a>}
+                            {config.socials?.tiktok && <a href={config.socials.tiktok} target="_blank" className="social-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 18, height: 18 }}><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" /></svg> TikTok</a>}
                         </div>
                     </div>
                 </div>
