@@ -1,6 +1,6 @@
 import { useState, useEffect, createContext, useContext } from 'react'
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom'
-import { ShoppingCart, Heart, Search, Menu, X, Plus, Minus, Trash2, Edit, Package, Truck, Shield, Headphones, ArrowRight, Instagram, Facebook, Twitter, Globe, Lock, ShoppingBag, Settings, LogOut, CheckCircle, AlertCircle, Percent, BarChart, Tag, MessageCircle, Eye, Share2, DollarSign, Users, Calendar, FileText, Printer, ChevronRight, XCircle, Image as ImageIcon, Save, Key, Grid } from 'lucide-react'
+import { ShoppingCart, Heart, Search, Menu, X, Plus, Minus, Trash2, Edit, Package, Truck, Shield, Headphones, ArrowRight, Instagram, Facebook, Twitter, Globe, Lock, ShoppingBag, Settings, LogOut, CheckCircle, AlertCircle, Percent, BarChart, Tag, MessageCircle, Eye, Share2, DollarSign, Users, Calendar, FileText, Printer, ChevronRight, XCircle, Image as ImageIcon, Save, Key, Grid, Layout } from 'lucide-react'
 
 // ========================================
 // CONFIG & CONSTANTS
@@ -24,7 +24,13 @@ const DEFAULT_CONFIG = {
         title: { en: "Moroccan Elegance", ar: "أناقة مغربية" },
         subtitle: { en: "Discover the timeless beauty of handcrafted tradition.", ar: "اكتشف الجمال الخالد للتقاليد اليدوية." },
         image: ''
-    }
+    },
+    pages: [
+        { id: 'about', title: { en: 'About Us', ar: 'من نحن' }, content: { en: 'Welcome to MarocBoutique. We provide the finest Moroccan handcrafted goods.', ar: 'مرحبًا بكم في MarocBoutique. نحن نقدم أرقى السلع المغربية المصنوعة يدويًا.' } },
+        { id: 'contact', title: { en: 'Contact Us', ar: 'اتصل بنا' }, content: { en: 'Email us at support@maroc.com or WhatsApp us.', ar: 'راسلنا على support@maroc.com أو تواصل عبر واتساب.' } },
+        { id: 'shipping', title: { en: 'Shipping Policy', ar: 'سياسة الشحن' }, content: { en: 'We ship worldwide within 5-10 business days.', ar: 'نشحن لجميع أنحاء العالم في غضون 5-10 أيام عمل.' } },
+        { id: 'privacy', title: { en: 'Privacy Policy', ar: 'سياسة الخصوصية' }, content: { en: 'Your data is safe with us.', ar: 'بياناتك في أمان معنا.' } }
+    ]
 }
 
 const DEFAULT_PRODUCTS = [
@@ -45,7 +51,7 @@ const TRANSLATIONS = {
         save: "Save Changes", cancel: "Cancel", delete: "Delete", edit: "Edit",
         search: "Search products...", noResults: "No products found.",
         apply: "Apply", discount: "Discount", promoCode: "Promo Code",
-        logout: "Log Out", categories: "Categories"
+        logout: "Log Out", categories: "Categories", contact: "Contact", pages: "Pages"
     },
     ar: {
         home: "الرئيسية", shop: "المتجر", products: "المنتجات", about: "من نحن",
@@ -57,7 +63,7 @@ const TRANSLATIONS = {
         save: "حفظ التغييرات", cancel: "إلغاء", delete: "حذف", edit: "تعديل",
         search: "بحث في المنتجات...", noResults: "لا توجد منتجات.",
         apply: "تطبيق", discount: "خصم", promoCode: "كود الخصم",
-        logout: "تسجيل الخروج", categories: "التصنيفات"
+        logout: "تسجيل الخروج", categories: "التصنيفات", contact: "اتصل بنا", pages: "الصفحات"
     }
 }
 
@@ -611,6 +617,59 @@ function AdminCategories({ config, setConfig }) {
     )
 }
 
+function AdminPages({ config, setConfig }) {
+    const [editing, setEditing] = useState(null)
+
+    const handleSave = () => {
+        setConfig({ ...config, pages: config.pages.map(p => p.id === editing.id ? editing : p) })
+        setEditing(null)
+    }
+
+    if (editing) {
+        return (
+            <div className="card" style={{ padding: 24, maxWidth: 800, margin: '0 auto' }}>
+                <h3 style={{ marginBottom: 20 }}>Edit Page: {editing.id}</h3>
+                <div className="grid-2">
+                    <div><label>Title (En)</label><input className="input" value={editing.title.en} onChange={e => setEditing({ ...editing, title: { ...editing.title, en: e.target.value } })} /></div>
+                    <div><label>Title (Ar)</label><input className="input" value={editing.title.ar} onChange={e => setEditing({ ...editing, title: { ...editing.title, ar: e.target.value } })} style={{ textAlign: 'right' }} /></div>
+                </div>
+
+                <div style={{ marginTop: 16 }}>
+                    <label>Content (English)</label>
+                    <textarea className="input" rows={6} value={editing.content.en} onChange={e => setEditing({ ...editing, content: { ...editing.content, en: e.target.value } })} />
+                </div>
+
+                <div style={{ marginTop: 16 }}>
+                    <label>Content (Arabic)</label>
+                    <textarea className="input" rows={6} value={editing.content.ar} onChange={e => setEditing({ ...editing, content: { ...editing.content, ar: e.target.value } })} style={{ textAlign: 'right' }} />
+                </div>
+
+                <div className="flex-between">
+                    <button onClick={() => setEditing(null)} className="btn btn-outline">Cancel</button>
+                    <button onClick={handleSave} className="btn btn-primary">Save Changes</button>
+                </div>
+            </div>
+        )
+    }
+
+    return (
+        <div>
+            <h2 style={{ fontSize: 28, fontWeight: 700, marginBottom: 24 }}>Pages</h2>
+            <div className="grid-2">
+                {config.pages.map(p => (
+                    <div key={p.id} className="card" style={{ padding: 24, cursor: 'pointer' }} onClick={() => setEditing(p)}>
+                        <div className="flex-between">
+                            <span style={{ fontWeight: 600 }}>{p.title.en}</span>
+                            <Edit size={16} />
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    )
+}
+
+
 function AdminSettings({ config, setConfig }) {
     const [local, setLocal] = useState({ ...config })
 
@@ -718,7 +777,7 @@ function AdminView({ config, setConfig, products, setProducts, orders, setOrders
                     <button className="md:hidden" onClick={() => setMobileMenuOpen(false)}><X size={20} /></button>
                 </div>
 
-                {['dashboard', 'orders', 'products', 'categories', 'marketing', 'settings'].map(item => (
+                {['dashboard', 'orders', 'products', 'categories', 'pages', 'marketing', 'settings'].map(item => (
                     <button key={item} onClick={() => { setTab(item); setMobileMenuOpen(false) }} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px', width: '100%', textAlign: 'left', borderRadius: 8, marginBottom: 4, background: tab === item ? '#000' : 'transparent', color: tab === item ? '#fff' : '#666' }}>
                         {item.charAt(0).toUpperCase() + item.slice(1)}
                     </button>
@@ -743,6 +802,8 @@ function AdminView({ config, setConfig, products, setProducts, orders, setOrders
                 {tab === 'products' && <AdminProducts products={products} setProducts={setProducts} config={config} />}
 
                 {tab === 'categories' && <AdminCategories config={config} setConfig={setConfig} />}
+
+                {tab === 'pages' && <AdminPages config={config} setConfig={setConfig} />}
 
                 {tab === 'settings' && <AdminSettings config={config} setConfig={setConfig} />}
 
@@ -778,6 +839,17 @@ function AdminView({ config, setConfig, products, setProducts, orders, setOrders
     )
 }
 
+function PageView({ config }) {
+    const { id } = useParams()
+    const { language } = useUser() // Will fix context usage below
+    // Context fix:
+    const app = useApp()
+    const page = config.pages.find(p => p.id === window.location.pathname.split('/').pop()) // Simple workaround for now
+
+    // Better way with proper route check in App
+    return null
+}
+
 function Home({ products, config, onQuickView, onAdd, t }) {
     const language = useApp().language
     return (
@@ -790,7 +862,8 @@ function Home({ products, config, onQuickView, onAdd, t }) {
                 </div>
             </div>
 
-            <div className="container" style={{ margin: '60px auto' }}>
+            <div id="categories" className="container" style={{ margin: '60px auto' }}>
+                <h2 style={{ fontSize: 28, fontWeight: 700, marginBottom: 32, textAlign: 'center' }}>{t.categories}</h2>
                 <div className="grid-3">
                     {config.categories.map(cat => (
                         <div key={cat.id} className="cat-card">
@@ -816,9 +889,28 @@ function Home({ products, config, onQuickView, onAdd, t }) {
     )
 }
 
+function DynamicPage() {
+    const loc = useLocation()
+    const { config, language } = useApp()
+    const pageId = loc.pathname.split('/')[2]
+    const page = config.pages.find(p => p.id === pageId)
+
+    if (!page) return <div style={{ padding: 60, textAlign: 'center' }}>Page Not Found</div>
+
+    return (
+        <div className="container" style={{ maxWidth: 800, margin: '60px auto', minHeight: '60vh' }}>
+            <h1 style={{ fontSize: 32, fontWeight: 700, marginBottom: 32 }}>{page.title[language]}</h1>
+            <div style={{ lineHeight: 1.8, color: '#4b5563', whiteSpace: 'pre-line' }}>
+                {page.content[language]}
+            </div>
+        </div>
+    )
+}
+
+
 function App() {
     const [language, setLanguage] = useState('en')
-    const [config, setConfig] = useStickyState(DEFAULT_CONFIG, 'config_v5') // using v5 to reset config
+    const [config, setConfig] = useStickyState(DEFAULT_CONFIG, 'config_v6')
     const [products, setProducts] = useStickyState(DEFAULT_PRODUCTS, 'products_v3')
     const [orders, setOrders] = useStickyState([], 'orders_v3')
     const [cart, setCart] = useState([])
@@ -835,56 +927,73 @@ function App() {
         setCartOpen(true)
     }
 
+    const PageLayout = ({ children }) => (
+        <>
+            <div style={{ background: '#000', color: '#fff', textAlign: 'center', padding: 8, fontSize: 13, fontWeight: 500 }}>{config.announcement}</div>
+            <nav className="header">
+                <div className="container flex-between" style={{ height: 70 }}>
+                    <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 12, textDecoration: 'none', color: 'inherit' }}>
+                        {config.logoUrl ? <img src={config.logoUrl} alt={config.storeName} style={{ height: 40 }} /> : <div style={{ fontWeight: 800, fontSize: 20, letterSpacing: -0.5 }}>{config.storeName}</div>}
+                    </Link>
+
+                    <div className="md:hidden flex" style={{ gap: 20, fontWeight: 500 }}>
+                        <a href="/#categories" style={{ color: 'inherit', textDecoration: 'none' }}>{t.categories}</a>
+                        <a href="/#shop" style={{ color: 'inherit', textDecoration: 'none' }}>{t.products}</a>
+                        <Link to="/page/contact" style={{ color: 'inherit', textDecoration: 'none' }}>{t.contact}</Link>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: 16 }}>
+                        <button onClick={() => setLanguage(language === 'en' ? 'ar' : 'en')} className="btn-outline" style={{ padding: '6px 12px' }}>{language.toUpperCase()}</button>
+                        <button onClick={() => setCartOpen(true)} className="btn-primary" style={{ padding: '8px 16px', borderRadius: 20 }}>
+                            <ShoppingCart size={18} style={{ marginRight: 8 }} /> {cart.length}
+                        </button>
+                    </div>
+                </div>
+            </nav>
+
+            {children}
+
+            <footer style={{ background: '#111827', color: 'white', padding: '60px 0', marginTop: 60 }}>
+                <div className="container grid-3" style={{ gap: 60 }}>
+                    <div>
+                        <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 20 }}>{config.storeName}</h3>
+                        <p style={{ color: '#9CA3AF', lineHeight: 1.6 }}>Authentic Moroccan craftsmanship delivered to your doorstep. Experience the luxury of tradition.</p>
+                    </div>
+                    <div>
+                        <h4 style={{ fontWeight: 600, marginBottom: 20 }}>Customer Service</h4>
+                        <p style={{ marginBottom: 8 }}><Link to="/page/contact" style={{ color: '#9CA3AF', textDecoration: 'none' }}>Contact Us</Link></p>
+                        <p style={{ marginBottom: 8 }}><Link to="/page/shipping" style={{ color: '#9CA3AF', textDecoration: 'none' }}>Shipping Policy</Link></p>
+                        <p style={{ marginBottom: 8 }}><Link to="/page/about" style={{ color: '#9CA3AF', textDecoration: 'none' }}>About Us</Link></p>
+                    </div>
+                    <div>
+                        <h4 style={{ fontWeight: 600, marginBottom: 20 }}>Follow Us</h4>
+                        <div style={{ display: 'flex', gap: 16 }}>
+                            <Instagram /> <Facebook /> <Twitter />
+                        </div>
+                    </div>
+                </div>
+            </footer>
+
+            <ProductModal product={viewProduct} onClose={() => setViewProduct(null)} onAdd={addToCart} />
+            <CartDrawer isOpen={cartOpen} onClose={() => setCartOpen(false)} cart={cart} updateQty={(id, q) => setCart(prev => q <= 0 ? prev.filter(i => i.id !== id) : prev.map(i => i.id === id ? { ...i, qty: q } : i))} remove={id => setCart(prev => prev.filter(i => i.id !== id))} config={config} t={t} />
+            <a href={`https://wa.me/${config.whatsappNumber}`} target="_blank" style={{ position: 'fixed', bottom: 30, right: 30, background: '#25D366', padding: 16, borderRadius: '50%', boxShadow: '0 10px 15px rgba(0,0,0,0.1)', zIndex: 90 }}>
+                <MessageCircle size={32} color="white" fill="white" />
+            </a>
+        </>
+    )
+
     return (
         <AppContext.Provider value={{ language, setLanguage, config, setConfig, t }}>
             <Router>
                 <Routes>
                     <Route path={config.adminUrl} element={<AdminView config={config} setConfig={setConfig} products={products} setProducts={setProducts} orders={orders} setOrders={setOrders} t={t} />} />
-                    <Route path="*" element={
-                        <>
-                            <div style={{ background: '#000', color: '#fff', textAlign: 'center', padding: 8, fontSize: 13, fontWeight: 500 }}>{config.announcement}</div>
-                            <nav className="header">
-                                <div className="container flex-between" style={{ height: 70 }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                        {config.logoUrl ? <img src={config.logoUrl} alt={config.storeName} style={{ height: 40 }} /> : <div style={{ fontWeight: 800, fontSize: 20, letterSpacing: -0.5 }}>{config.storeName}</div>}
-                                    </div>
-                                    <div style={{ display: 'flex', gap: 16 }}>
-                                        <button onClick={() => setLanguage(language === 'en' ? 'ar' : 'en')} className="btn-outline" style={{ padding: '6px 12px' }}>{language.toUpperCase()}</button>
-                                        <button onClick={() => setCartOpen(true)} className="btn-primary" style={{ padding: '8px 16px', borderRadius: 20 }}>
-                                            <ShoppingCart size={18} style={{ marginRight: 8 }} /> {cart.length}
-                                        </button>
-                                    </div>
-                                </div>
-                            </nav>
 
+                    <Route path="/page/:id" element={<PageLayout><DynamicPage /></PageLayout>} />
+
+                    <Route path="/" element={
+                        <PageLayout>
                             <Home products={products} config={config} onQuickView={setViewProduct} onAdd={addToCart} t={t} />
-
-                            <footer style={{ background: '#111827', color: 'white', padding: '60px 0', marginTop: 60 }}>
-                                <div className="container grid-3" style={{ gap: 60 }}>
-                                    <div>
-                                        <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 20 }}>{config.storeName}</h3>
-                                        <p style={{ color: '#9CA3AF', lineHeight: 1.6 }}>Authentic Moroccan craftsmanship delivered to your doorstep. Experience the luxury of tradition.</p>
-                                    </div>
-                                    <div>
-                                        <h4 style={{ fontWeight: 600, marginBottom: 20 }}>Customer Service</h4>
-                                        <p style={{ color: '#9CA3AF', marginBottom: 8 }}>Contact Us</p>
-                                        <p style={{ color: '#9CA3AF', marginBottom: 8 }}>Shipping Policy</p>
-                                    </div>
-                                    <div>
-                                        <h4 style={{ fontWeight: 600, marginBottom: 20 }}>Follow Us</h4>
-                                        <div style={{ display: 'flex', gap: 16 }}>
-                                            <Instagram /> <Facebook /> <Twitter />
-                                        </div>
-                                    </div>
-                                </div>
-                            </footer>
-
-                            <ProductModal product={viewProduct} onClose={() => setViewProduct(null)} onAdd={addToCart} />
-                            <CartDrawer isOpen={cartOpen} onClose={() => setCartOpen(false)} cart={cart} updateQty={(id, q) => setCart(prev => q <= 0 ? prev.filter(i => i.id !== id) : prev.map(i => i.id === id ? { ...i, qty: q } : i))} remove={id => setCart(prev => prev.filter(i => i.id !== id))} config={config} t={t} />
-                            <a href={`https://wa.me/${config.whatsappNumber}`} target="_blank" style={{ position: 'fixed', bottom: 30, right: 30, background: '#25D366', padding: 16, borderRadius: '50%', boxShadow: '0 10px 15px rgba(0,0,0,0.1)', zIndex: 90 }}>
-                                <MessageCircle size={32} color="white" fill="white" />
-                            </a>
-                        </>
+                        </PageLayout>
                     } />
                 </Routes>
             </Router>
