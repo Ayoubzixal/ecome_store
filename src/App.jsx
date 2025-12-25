@@ -1,26 +1,31 @@
 import { useState, useEffect, createContext, useContext } from 'react'
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom'
-import { ShoppingCart, Heart, Search, Menu, X, Plus, Minus, Trash2, Edit, Package, Truck, Shield, Headphones, ArrowRight, Instagram, Facebook, Twitter, Globe, Lock, ShoppingBag, Settings, LogOut, CheckCircle, AlertCircle, Percent, BarChart, Tag, MessageCircle, Eye, Share2, DollarSign, Users, Calendar, FileText, Printer, ChevronRight, XCircle, Image as ImageIcon, Save, Key } from 'lucide-react'
+import { ShoppingCart, Heart, Search, Menu, X, Plus, Minus, Trash2, Edit, Package, Truck, Shield, Headphones, ArrowRight, Instagram, Facebook, Twitter, Globe, Lock, ShoppingBag, Settings, LogOut, CheckCircle, AlertCircle, Percent, BarChart, Tag, MessageCircle, Eye, Share2, DollarSign, Users, Calendar, FileText, Printer, ChevronRight, XCircle, Image as ImageIcon, Save, Key, Grid } from 'lucide-react'
 
 // ========================================
 // CONFIG & CONSTANTS
 // ========================================
 const DEFAULT_CONFIG = {
     storeName: 'MarocBoutique',
+    logoUrl: '',
     whatsappNumber: '212600000000',
     adminPassword: 'seller2024',
     adminUrl: '/Ayoub',
     currency: 'USD',
     announcement: '✨ Free Shipping on All Orders Over $150! ✨',
     pixelId: '',
-    promoCodes: [{ code: 'WELCOME10', discount: 10, active: true }]
+    promoCodes: [{ code: 'WELCOME10', discount: 10, active: true }],
+    categories: [
+        { id: 'kaftans', label: { en: 'Kaftans', ar: 'قفاطين' }, image: 'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=500' },
+        { id: 'djellabas', label: { en: 'Djellabas', ar: 'جلابيب' }, image: 'https://images.unsplash.com/photo-1590735213920-68192a487bc2?w=500' },
+        { id: 'shoes', label: { en: 'Shoes', ar: 'أحذية' }, image: 'https://images.unsplash.com/photo-1608256246200-53e635b5b65f?w=500' }
+    ],
+    hero: {
+        title: { en: "Moroccan Elegance", ar: "أناقة مغربية" },
+        subtitle: { en: "Discover the timeless beauty of handcrafted tradition.", ar: "اكتشف الجمال الخالد للتقاليد اليدوية." },
+        image: ''
+    }
 }
-
-const CATEGORIES = [
-    { id: 'kaftans', label: { en: 'Kaftans', ar: 'قفاطين' }, image: 'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=500' },
-    { id: 'djellabas', label: { en: 'Djellabas', ar: 'جلابيب' }, image: 'https://images.unsplash.com/photo-1590735213920-68192a487bc2?w=500' },
-    { id: 'shoes', label: { en: 'Shoes', ar: 'أحذية' }, image: 'https://images.unsplash.com/photo-1608256246200-53e635b5b65f?w=500' }
-]
 
 const DEFAULT_PRODUCTS = [
     { id: 1, name: { ar: "قفطان ملكي فاخر", en: "Royal Luxury Kaftan" }, category: "kaftans", price: 299, originalPrice: 399, image: "https://images.unsplash.com/photo-1583391733956-6c78276477e2?w=800", badge: "hot", description: "Handcrafted with premium silk and gold embroidery." },
@@ -32,27 +37,27 @@ const DEFAULT_PRODUCTS = [
 const TRANSLATIONS = {
     en: {
         home: "Home", shop: "Shop", products: "Products", about: "About",
-        heroTitle: "Moroccan Elegance", heroSubtitle: "Discover the timeless beauty of handcrafted tradition.", shopNow: "Shop Collection",
-        featured: "Featured Collection", viewAll: "View All",
+        shopNow: "Shop Collection", featured: "Featured Collection", viewAll: "View All",
         quickView: "Quick View", addToCart: "Add to Cart", outOfStock: "Out of Stock",
         cart: "Shopping Cart", checkout: "Checkout", subtotal: "Subtotal", total: "Total",
         admin: "Admin", dashboard: "Dashboard", marketing: "Marketing", orders: "Orders", settings: "Settings", status: "Status",
         status_pending: "Pending", status_completed: "Completed", status_shipped: "Shipped",
         save: "Save Changes", cancel: "Cancel", delete: "Delete", edit: "Edit",
         search: "Search products...", noResults: "No products found.",
-        apply: "Apply", discount: "Discount", promoCode: "Promo Code"
+        apply: "Apply", discount: "Discount", promoCode: "Promo Code",
+        logout: "Log Out", categories: "Categories"
     },
     ar: {
         home: "الرئيسية", shop: "المتجر", products: "المنتجات", about: "من نحن",
-        heroTitle: "أناقة مغربية", heroSubtitle: "اكتشف الجمال الخالد للتقاليد اليدوية.", shopNow: "تسوق المجموعة",
-        featured: "مجموعة مميزة", viewAll: "عرض الكل",
+        shopNow: "تسوق المجموعة", featured: "مجموعة مميزة", viewAll: "عرض الكل",
         quickView: "نظرة سريعة", addToCart: "أضف للسلة", outOfStock: "نفذت الكمية",
         cart: "سلة التسوق", checkout: "إتمام الطلب", subtotal: "المجموع الفرعي", total: "المجموع",
         admin: "الإدارة", dashboard: "الرئيسية", marketing: "التسويق", orders: "الطلبات", settings: "الإعدادات", status: "الحالة",
         status_pending: "قيد الانتظار", status_completed: "مكتمل", status_shipped: "تم الشحن",
         save: "حفظ التغييرات", cancel: "إلغاء", delete: "حذف", edit: "تعديل",
         search: "بحث في المنتجات...", noResults: "لا توجد منتجات.",
-        apply: "تطبيق", discount: "خصم", promoCode: "كود الخصم"
+        apply: "تطبيق", discount: "خصم", promoCode: "كود الخصم",
+        logout: "تسجيل الخروج", categories: "التصنيفات"
     }
 }
 
@@ -457,8 +462,7 @@ function AdminProducts({ products, setProducts, config }) {
                         <div>
                             <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 500 }}>Category</label>
                             <select className="input" value={editing.category} onChange={e => setEditing({ ...editing, category: e.target.value })}>
-                                {CATEGORIES.map(c => <option key={c.id} value={c.id}>{c.label.en}</option>)}
-                                <option value="accessories">Accessories</option>
+                                {config.categories.map(c => <option key={c.id} value={c.id}>{c.label.en}</option>)}
                             </select>
                         </div>
                         <div>
@@ -538,6 +542,75 @@ function AdminProducts({ products, setProducts, config }) {
     )
 }
 
+function AdminCategories({ config, setConfig }) {
+    const [editing, setEditing] = useState(null)
+
+    const handleSave = (e) => {
+        e.preventDefault()
+        const newCats = editing.isNew ? [...config.categories, { ...editing, isNew: undefined }] : config.categories.map(c => c.id === editing.id ? editing : c)
+        setConfig({ ...config, categories: newCats })
+        setEditing(null)
+    }
+
+    const handleDelete = (id) => {
+        if (confirm('Delete this category?')) {
+            setConfig({ ...config, categories: config.categories.filter(c => c.id !== id) })
+        }
+    }
+
+    if (editing) {
+        return (
+            <div className="card" style={{ padding: 24, maxWidth: 600, margin: '0 auto' }}>
+                <h3 style={{ marginBottom: 20 }}>{editing.isNew ? 'Add Category' : 'Edit Category'}</h3>
+                <form onSubmit={handleSave}>
+                    {!editing.isNew && <div style={{ marginBottom: 16, fontWeight: 600 }}>ID: {editing.id}</div>}
+                    {editing.isNew && <div style={{ marginBottom: 16 }}><label>ID (unique, lowercase)</label><input className="input" required value={editing.id} onChange={e => setEditing({ ...editing, id: e.target.value.toLowerCase().replace(/\s/g, '-') })} /></div>}
+
+                    <div className="grid-2">
+                        <div><label>Name (En)</label><input className="input" required value={editing.label.en} onChange={e => setEditing({ ...editing, label: { ...editing.label, en: e.target.value } })} /></div>
+                        <div><label>Name (Ar)</label><input className="input" required value={editing.label.ar} onChange={e => setEditing({ ...editing, label: { ...editing.label, ar: e.target.value } })} style={{ textAlign: 'right' }} /></div>
+                    </div>
+
+                    <div style={{ marginBottom: 16 }}>
+                        <label>Image URL</label>
+                        <input className="input" required value={editing.image} onChange={e => setEditing({ ...editing, image: e.target.value })} />
+                        {editing.image && <img src={editing.image} style={{ height: 100, borderRadius: 8 }} />}
+                    </div>
+
+                    <div className="flex-between">
+                        <button type="button" onClick={() => setEditing(null)} className="btn btn-outline">Cancel</button>
+                        <button type="submit" className="btn btn-primary">Save Category</button>
+                    </div>
+                </form>
+            </div>
+        )
+    }
+
+    return (
+        <div>
+            <div className="flex-between" style={{ marginBottom: 24 }}>
+                <h2 style={{ fontSize: 28, fontWeight: 700 }}>Categories</h2>
+                <button onClick={() => setEditing({ isNew: true, id: '', label: { en: '', ar: '' }, image: '' })} className="btn btn-primary" style={{ gap: 8 }}><Plus size={18} /> Add Category</button>
+            </div>
+            <div className="grid-3">
+                {config.categories.map(c => (
+                    <div key={c.id} className="cat-card" style={{ height: 200 }}>
+                        <img src={c.image} style={{ height: '100%', width: '100%', objectFit: 'cover' }} />
+                        <div className="cat-overlay" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', background: 'rgba(0,0,0,0.6)' }}>
+                            <div style={{ color: 'white', fontWeight: 700, fontSize: 20 }}>{c.label.en}</div>
+                            <div style={{ color: '#ddd', fontSize: 14 }}>{c.label.ar}</div>
+                            <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
+                                <button onClick={() => setEditing(c)} className="icon-btn" style={{ background: 'white', color: 'black' }}><Edit size={16} /></button>
+                                <button onClick={() => handleDelete(c.id)} className="icon-btn" style={{ background: 'white', color: 'red' }}><Trash2 size={16} /></button>
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    )
+}
+
 function AdminSettings({ config, setConfig }) {
     const [local, setLocal] = useState({ ...config })
 
@@ -547,15 +620,49 @@ function AdminSettings({ config, setConfig }) {
     }
 
     return (
-        <div style={{ maxWidth: 600, margin: '0 auto' }}>
+        <div style={{ maxWidth: 800, margin: '0 auto' }}>
             <h2 style={{ fontSize: 24, marginBottom: 24, fontWeight: 700 }}>Store Settings</h2>
 
             <div className="card" style={{ padding: 24, marginBottom: 24 }}>
-                <h3 style={{ marginBottom: 16 }}>General Info</h3>
-                <div style={{ marginBottom: 16 }}>
-                    <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 500 }}>Store Name</label>
-                    <input className="input" value={local.storeName} onChange={e => setLocal({ ...local, storeName: e.target.value })} />
+                <h3 style={{ marginBottom: 16 }}>Brand Identity</h3>
+                <div className="grid-2">
+                    <div>
+                        <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 500 }}>Store Name</label>
+                        <input className="input" value={local.storeName} onChange={e => setLocal({ ...local, storeName: e.target.value })} />
+                    </div>
+                    <div>
+                        <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 500 }}>Logo URL (Optional)</label>
+                        <input className="input" value={local.logoUrl} onChange={e => setLocal({ ...local, logoUrl: e.target.value })} placeholder="https://..." />
+                    </div>
                 </div>
+            </div>
+
+            <div className="card" style={{ padding: 24, marginBottom: 24 }}>
+                <h3 style={{ marginBottom: 16 }}>Homepage Content (Hero)</h3>
+                <div className="grid-2">
+                    <div>
+                        <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 500 }}>Headline (English)</label>
+                        <input className="input" value={local.hero.title.en} onChange={e => setLocal({ ...local, hero: { ...local.hero, title: { ...local.hero.title, en: e.target.value } } })} />
+                    </div>
+                    <div>
+                        <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 500 }}>Headline (Arabic)</label>
+                        <input className="input" value={local.hero.title.ar} onChange={e => setLocal({ ...local, hero: { ...local.hero, title: { ...local.hero.title, ar: e.target.value } } })} style={{ textAlign: 'right' }} />
+                    </div>
+                </div>
+                <div className="grid-2" style={{ marginTop: 12 }}>
+                    <div>
+                        <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 500 }}>Subtitle (English)</label>
+                        <input className="input" value={local.hero.subtitle.en} onChange={e => setLocal({ ...local, hero: { ...local.hero, subtitle: { ...local.hero.subtitle, en: e.target.value } } })} />
+                    </div>
+                    <div>
+                        <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 500 }}>Subtitle (Arabic)</label>
+                        <input className="input" value={local.hero.subtitle.ar} onChange={e => setLocal({ ...local, hero: { ...local.hero, subtitle: { ...local.hero.subtitle, ar: e.target.value } } })} style={{ textAlign: 'right' }} />
+                    </div>
+                </div>
+            </div>
+
+            <div className="card" style={{ padding: 24, marginBottom: 24 }}>
+                <h3 style={{ marginBottom: 16 }}>Configuration</h3>
                 <div className="grid-2">
                     <div>
                         <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 500 }}>Currency</label>
@@ -570,27 +677,14 @@ function AdminSettings({ config, setConfig }) {
                         <input className="input" value={local.whatsappNumber} onChange={e => setLocal({ ...local, whatsappNumber: e.target.value })} />
                     </div>
                 </div>
-            </div>
-
-            <div className="card" style={{ padding: 24, marginBottom: 24 }}>
-                <h3 style={{ marginBottom: 16 }}>Security</h3>
-                <div>
+                <div style={{ marginTop: 16 }}>
                     <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 500 }}>Admin URL</label>
                     <input className="input" value={local.adminUrl} onChange={e => setLocal({ ...local, adminUrl: e.target.value })} />
                 </div>
                 <div style={{ marginTop: 16 }}>
                     <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 500 }}>Admin Password</label>
-                    <div style={{ display: 'flex', gap: 12 }}>
-                        <input className="input" type="text" value={local.adminPassword} onChange={e => setLocal({ ...local, adminPassword: e.target.value })} style={{ marginBottom: 0 }} />
-                    </div>
-                    <p style={{ fontSize: 12, color: 'orange', marginTop: 8 }}>* Keep this password safe. It is your only access key.</p>
+                    <input className="input" type="text" value={local.adminPassword} onChange={e => setLocal({ ...local, adminPassword: e.target.value })} />
                 </div>
-            </div>
-
-            <div className="card" style={{ padding: 24 }}>
-                <h3 style={{ marginBottom: 16 }}>Tracking</h3>
-                <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 500 }}>Facebook Pixel ID</label>
-                <input className="input" value={local.pixelId} onChange={e => setLocal({ ...local, pixelId: e.target.value })} placeholder="e.g. 1234567890" />
             </div>
 
             <div style={{ marginTop: 32, textAlign: 'right' }}>
@@ -624,11 +718,17 @@ function AdminView({ config, setConfig, products, setProducts, orders, setOrders
                     <button className="md:hidden" onClick={() => setMobileMenuOpen(false)}><X size={20} /></button>
                 </div>
 
-                {['dashboard', 'orders', 'products', 'marketing', 'settings'].map(item => (
+                {['dashboard', 'orders', 'products', 'categories', 'marketing', 'settings'].map(item => (
                     <button key={item} onClick={() => { setTab(item); setMobileMenuOpen(false) }} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px', width: '100%', textAlign: 'left', borderRadius: 8, marginBottom: 4, background: tab === item ? '#000' : 'transparent', color: tab === item ? '#fff' : '#666' }}>
                         {item.charAt(0).toUpperCase() + item.slice(1)}
                     </button>
                 ))}
+
+                <div style={{ marginTop: 'auto', paddingTop: 20, borderTop: '1px solid #eee' }}>
+                    <Link to="/" className="btn btn-outline" style={{ display: 'flex', width: '100%', alignItems: 'center', justifyContent: 'center', gap: 8, border: 'none', color: 'red' }}>
+                        <LogOut size={18} /> Logout
+                    </Link>
+                </div>
             </div>
 
             <div className="admin-main" style={{ flex: 1, marginLeft: 260 }}>
@@ -641,6 +741,8 @@ function AdminView({ config, setConfig, products, setProducts, orders, setOrders
                 {tab === 'orders' && <AdminOrders orders={orders} setOrders={setOrders} config={config} />}
 
                 {tab === 'products' && <AdminProducts products={products} setProducts={setProducts} config={config} />}
+
+                {tab === 'categories' && <AdminCategories config={config} setConfig={setConfig} />}
 
                 {tab === 'settings' && <AdminSettings config={config} setConfig={setConfig} />}
 
@@ -676,24 +778,25 @@ function AdminView({ config, setConfig, products, setProducts, orders, setOrders
     )
 }
 
-function Home({ products, onQuickView, onAdd, t }) {
+function Home({ products, config, onQuickView, onAdd, t }) {
+    const language = useApp().language
     return (
         <>
             <div className="hero">
                 <div>
-                    <h1 className="animate-slide">{t.heroTitle}</h1>
-                    <p style={{ fontSize: '1.2rem', marginBottom: 32, opacity: 0.9 }}>{t.heroSubtitle}</p>
+                    <h1 className="animate-slide">{config.hero.title[language]}</h1>
+                    <p style={{ fontSize: '1.2rem', marginBottom: 32, opacity: 0.9 }}>{config.hero.subtitle[language]}</p>
                     <a href="#shop" className="btn btn-primary" style={{ padding: '12px 32px', fontSize: 18 }}>{t.shopNow}</a>
                 </div>
             </div>
 
             <div className="container" style={{ margin: '60px auto' }}>
                 <div className="grid-3">
-                    {CATEGORIES.map(cat => (
+                    {config.categories.map(cat => (
                         <div key={cat.id} className="cat-card">
                             <img src={cat.image} alt={cat.label.en} />
                             <div className="cat-overlay">
-                                <span className="cat-title">{cat.label.en}</span>
+                                <span className="cat-title">{cat.label[language]}</span>
                             </div>
                         </div>
                     ))}
@@ -715,7 +818,7 @@ function Home({ products, onQuickView, onAdd, t }) {
 
 function App() {
     const [language, setLanguage] = useState('en')
-    const [config, setConfig] = useStickyState(DEFAULT_CONFIG, 'config_v3')
+    const [config, setConfig] = useStickyState(DEFAULT_CONFIG, 'config_v5') // using v5 to reset config
     const [products, setProducts] = useStickyState(DEFAULT_PRODUCTS, 'products_v3')
     const [orders, setOrders] = useStickyState([], 'orders_v3')
     const [cart, setCart] = useState([])
@@ -742,7 +845,9 @@ function App() {
                             <div style={{ background: '#000', color: '#fff', textAlign: 'center', padding: 8, fontSize: 13, fontWeight: 500 }}>{config.announcement}</div>
                             <nav className="header">
                                 <div className="container flex-between" style={{ height: 70 }}>
-                                    <div style={{ fontWeight: 800, fontSize: 20, letterSpacing: -0.5 }}>{config.storeName}</div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                        {config.logoUrl ? <img src={config.logoUrl} alt={config.storeName} style={{ height: 40 }} /> : <div style={{ fontWeight: 800, fontSize: 20, letterSpacing: -0.5 }}>{config.storeName}</div>}
+                                    </div>
                                     <div style={{ display: 'flex', gap: 16 }}>
                                         <button onClick={() => setLanguage(language === 'en' ? 'ar' : 'en')} className="btn-outline" style={{ padding: '6px 12px' }}>{language.toUpperCase()}</button>
                                         <button onClick={() => setCartOpen(true)} className="btn-primary" style={{ padding: '8px 16px', borderRadius: 20 }}>
@@ -752,7 +857,7 @@ function App() {
                                 </div>
                             </nav>
 
-                            <Home products={products} onQuickView={setViewProduct} onAdd={addToCart} t={t} />
+                            <Home products={products} config={config} onQuickView={setViewProduct} onAdd={addToCart} t={t} />
 
                             <footer style={{ background: '#111827', color: 'white', padding: '60px 0', marginTop: 60 }}>
                                 <div className="container grid-3" style={{ gap: 60 }}>
