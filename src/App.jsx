@@ -716,110 +716,236 @@ function AdminPages({ config, setConfig }) {
 }
 
 
+
 function AdminSettings({ config, setConfig }) {
     const [local, setLocal] = useState({ ...config })
+    const [saved, setSaved] = useState(false)
 
     const handleSave = () => {
         setConfig(local)
-        alert('Settings Saved Successfully')
+        setSaved(true)
+        setTimeout(() => setSaved(false), 3000)
     }
 
+    const ImagePreview = ({ url, label, height = 120 }) => (
+        <div style={{
+            width: '100%',
+            height,
+            background: '#f5f5f5',
+            borderRadius: 8,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            overflow: 'hidden',
+            border: '2px dashed #ddd',
+            marginTop: 8
+        }}>
+            {url ? (
+                <img src={url} alt={label} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : (
+                <div style={{ textAlign: 'center', color: '#999' }}>
+                    <ImageIcon size={32} style={{ marginBottom: 8, opacity: 0.5 }} />
+                    <div style={{ fontSize: 12 }}>No image set</div>
+                </div>
+            )}
+        </div>
+    )
+
     return (
-        <div style={{ maxWidth: 800, margin: '0 auto' }}>
-            <h2 style={{ fontSize: 24, marginBottom: 24, fontWeight: 700 }}>Store Settings</h2>
+        <div style={{ maxWidth: 900, margin: '0 auto' }}>
+            <div className="flex-between" style={{ marginBottom: 32 }}>
+                <div>
+                    <h2 style={{ fontSize: 28, fontWeight: 800, marginBottom: 4 }}>Store Settings</h2>
+                    <p style={{ color: '#666' }}>Customize your store's appearance and configuration</p>
+                </div>
+                {saved && (
+                    <div style={{
+                        background: '#10b981',
+                        color: 'white',
+                        padding: '10px 20px',
+                        borderRadius: 8,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        animation: 'fadeIn 0.3s ease'
+                    }}>
+                        <CheckCircle size={18} /> Saved Successfully!
+                    </div>
+                )}
+            </div>
 
-            <div className="card" style={{ padding: 24, marginBottom: 24 }}>
-                <h3 style={{ marginBottom: 16 }}>Brand Identity</h3>
+            {/* Brand Identity */}
+            <div className="card" style={{ padding: 28, marginBottom: 24 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+                    <div style={{ width: 40, height: 40, background: 'linear-gradient(135deg, #e94560, #1a1a2e)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Settings size={20} color="white" />
+                    </div>
+                    <div>
+                        <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 2 }}>Brand Identity</h3>
+                        <p style={{ fontSize: 13, color: '#666' }}>Your store's name and logo</p>
+                    </div>
+                </div>
+
                 <div className="grid-2">
                     <div>
-                        <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 500 }}>Store Name</label>
+                        <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 600 }}>Store Name *</label>
                         <input className="input" value={local.storeName} onChange={e => setLocal({ ...local, storeName: e.target.value })} />
+
+                        <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 600, marginTop: 8 }}>Tagline (English)</label>
+                        <input className="input" value={local.tagline?.en || ''} onChange={e => setLocal({ ...local, tagline: { ...local.tagline, en: e.target.value } })} placeholder="e.g., Authentic Moroccan Fashion" />
+
+                        <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 600, marginTop: 8 }}>Tagline (Arabic)</label>
+                        <input className="input" value={local.tagline?.ar || ''} onChange={e => setLocal({ ...local, tagline: { ...local.tagline, ar: e.target.value } })} placeholder="e.g., أزياء مغربية أصيلة" style={{ textAlign: 'right' }} />
                     </div>
                     <div>
-                        <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 500 }}>Logo URL (Optional)</label>
-                        <input className="input" value={local.logoUrl} onChange={e => setLocal({ ...local, logoUrl: e.target.value })} placeholder="https://..." />
+                        <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 600 }}>Logo URL</label>
+                        <input className="input" value={local.logoUrl} onChange={e => setLocal({ ...local, logoUrl: e.target.value })} placeholder="https://your-logo-url.com/logo.png" />
+                        <ImagePreview url={local.logoUrl} label="Logo" height={150} />
                     </div>
                 </div>
             </div>
 
-            <div className="card" style={{ padding: 24, marginBottom: 24 }}>
-                <h3 style={{ marginBottom: 16 }}>Homepage Content (Hero)</h3>
-                <div className="grid-2">
-                    <div>
-                        <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 500 }}>Headline (English)</label>
-                        <input className="input" value={local.hero.title.en} onChange={e => setLocal({ ...local, hero: { ...local.hero, title: { ...local.hero.title, en: e.target.value } } })} />
+            {/* Hero Section */}
+            <div className="card" style={{ padding: 28, marginBottom: 24 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+                    <div style={{ width: 40, height: 40, background: 'linear-gradient(135deg, #f59e0b, #ef4444)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Layout size={20} color="white" />
                     </div>
                     <div>
-                        <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 500 }}>Headline (Arabic)</label>
-                        <input className="input" value={local.hero.title.ar} onChange={e => setLocal({ ...local, hero: { ...local.hero, title: { ...local.hero.title, ar: e.target.value } } })} style={{ textAlign: 'right' }} />
+                        <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 2 }}>Hero Section</h3>
+                        <p style={{ fontSize: 13, color: '#666' }}>Customize your homepage banner</p>
                     </div>
                 </div>
-                <div className="grid-2" style={{ marginTop: 12 }}>
+
+                <div className="grid-2">
                     <div>
-                        <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 500 }}>Subtitle (English)</label>
-                        <input className="input" value={local.hero.subtitle.en} onChange={e => setLocal({ ...local, hero: { ...local.hero, subtitle: { ...local.hero.subtitle, en: e.target.value } } })} />
+                        <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 600 }}>Headline (English) *</label>
+                        <input className="input" value={local.hero?.title?.en || ''} onChange={e => setLocal({ ...local, hero: { ...local.hero, title: { ...local.hero?.title, en: e.target.value } } })} />
+
+                        <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 600, marginTop: 8 }}>Headline (Arabic) *</label>
+                        <input className="input" value={local.hero?.title?.ar || ''} onChange={e => setLocal({ ...local, hero: { ...local.hero, title: { ...local.hero?.title, ar: e.target.value } } })} style={{ textAlign: 'right' }} />
                     </div>
                     <div>
-                        <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 500 }}>Subtitle (Arabic)</label>
-                        <input className="input" value={local.hero.subtitle.ar} onChange={e => setLocal({ ...local, hero: { ...local.hero, subtitle: { ...local.hero.subtitle, ar: e.target.value } } })} style={{ textAlign: 'right' }} />
+                        <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 600 }}>Subtitle (English)</label>
+                        <input className="input" value={local.hero?.subtitle?.en || ''} onChange={e => setLocal({ ...local, hero: { ...local.hero, subtitle: { ...local.hero?.subtitle, en: e.target.value } } })} />
+
+                        <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 600, marginTop: 8 }}>Subtitle (Arabic)</label>
+                        <input className="input" value={local.hero?.subtitle?.ar || ''} onChange={e => setLocal({ ...local, hero: { ...local.hero, subtitle: { ...local.hero?.subtitle, ar: e.target.value } } })} style={{ textAlign: 'right' }} />
+                    </div>
+                </div>
+
+                <div className="grid-2" style={{ marginTop: 16 }}>
+                    <div>
+                        <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 600 }}>Hero Badge Text</label>
+                        <input className="input" value={local.hero?.badge || ''} onChange={e => setLocal({ ...local, hero: { ...local.hero, badge: e.target.value } })} placeholder="e.g., ✨ New Collection 2024" />
+                        <p style={{ fontSize: 11, color: '#888', marginTop: -8 }}>Appears above the headline</p>
+                    </div>
+                    <div>
+                        <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 600 }}>Hero Background Image URL</label>
+                        <input className="input" value={local.hero?.image || ''} onChange={e => setLocal({ ...local, hero: { ...local.hero, image: e.target.value } })} placeholder="https://images.unsplash.com/..." />
+                        <ImagePreview url={local.hero?.image} label="Hero Background" height={100} />
                     </div>
                 </div>
             </div>
 
-            <div className="card" style={{ padding: 24, marginBottom: 24 }}>
-                <h3 style={{ marginBottom: 16 }}>Configuration</h3>
+            {/* Configuration */}
+            <div className="card" style={{ padding: 28, marginBottom: 24 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+                    <div style={{ width: 40, height: 40, background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Key size={20} color="white" />
+                    </div>
+                    <div>
+                        <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 2 }}>Configuration</h3>
+                        <p style={{ fontSize: 13, color: '#666' }}>Store settings and access</p>
+                    </div>
+                </div>
+
                 <div className="grid-2">
                     <div>
-                        <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 500 }}>Currency</label>
+                        <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 600 }}>Currency</label>
                         <select className="input" value={local.currency} onChange={e => setLocal({ ...local, currency: e.target.value })}>
                             <option value="USD">USD ($)</option>
                             <option value="MAD">MAD (DH)</option>
                             <option value="EUR">EUR (€)</option>
+                            <option value="GBP">GBP (£)</option>
+                            <option value="SAR">SAR (ر.س)</option>
+                            <option value="AED">AED (د.إ)</option>
                         </select>
                     </div>
                     <div>
-                        <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 500 }}>WhatsApp Number</label>
-                        <input className="input" value={local.whatsappNumber} onChange={e => setLocal({ ...local, whatsappNumber: e.target.value })} />
+                        <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 600 }}>WhatsApp Number</label>
+                        <input className="input" value={local.whatsappNumber} onChange={e => setLocal({ ...local, whatsappNumber: e.target.value })} placeholder="212600000000" />
+                        <p style={{ fontSize: 11, color: '#888', marginTop: -8 }}>Without + or spaces</p>
                     </div>
                 </div>
-                <div style={{ marginTop: 16 }}>
-                    <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 500 }}>Admin URL</label>
-                    <input className="input" value={local.adminUrl} onChange={e => setLocal({ ...local, adminUrl: e.target.value })} />
-                </div>
-                <div style={{ marginTop: 16 }}>
-                    <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 500 }}>Admin Password</label>
-                    <input className="input" type="text" value={local.adminPassword} onChange={e => setLocal({ ...local, adminPassword: e.target.value })} />
+                <div className="grid-2" style={{ marginTop: 8 }}>
+                    <div>
+                        <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 600 }}>Admin Panel URL</label>
+                        <input className="input" value={local.adminUrl} onChange={e => setLocal({ ...local, adminUrl: e.target.value })} />
+                        <p style={{ fontSize: 11, color: '#888', marginTop: -8 }}>e.g., /admin or /secret-panel</p>
+                    </div>
+                    <div>
+                        <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 600 }}>Admin Password</label>
+                        <input className="input" type="password" value={local.adminPassword} onChange={e => setLocal({ ...local, adminPassword: e.target.value })} />
+                    </div>
                 </div>
             </div>
 
-            <div className="card" style={{ padding: 24, marginBottom: 24 }}>
-                <h3 style={{ marginBottom: 16 }}>Social Media Links</h3>
+            {/* Social Media */}
+            <div className="card" style={{ padding: 28, marginBottom: 24 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+                    <div style={{ width: 40, height: 40, background: 'linear-gradient(135deg, #ec4899, #f43f5e)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Share2 size={20} color="white" />
+                    </div>
+                    <div>
+                        <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 2 }}>Social Media</h3>
+                        <p style={{ fontSize: 13, color: '#666' }}>Connect your social accounts</p>
+                    </div>
+                </div>
+
                 <div className="grid-2">
                     <div>
-                        <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 500 }}>Instagram URL</label>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, fontSize: 13, fontWeight: 600 }}><Instagram size={16} /> Instagram</label>
                         <input className="input" value={local.socials?.instagram || ''} onChange={e => setLocal({ ...local, socials: { ...local.socials, instagram: e.target.value } })} placeholder="https://instagram.com/..." />
                     </div>
                     <div>
-                        <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 500 }}>Facebook URL</label>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, fontSize: 13, fontWeight: 600 }}><Facebook size={16} /> Facebook</label>
                         <input className="input" value={local.socials?.facebook || ''} onChange={e => setLocal({ ...local, socials: { ...local.socials, facebook: e.target.value } })} placeholder="https://facebook.com/..." />
                     </div>
                     <div>
-                        <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 500 }}>TikTok URL</label>
-                        <input className="input" value={local.socials?.tiktok || ''} onChange={e => setLocal({ ...local, socials: { ...local.socials, tiktok: e.target.value } })} placeholder="https://tiktok.com/..." />
+                        <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, fontSize: 13, fontWeight: 600 }}><Twitter size={16} /> Twitter/X</label>
+                        <input className="input" value={local.socials?.twitter || ''} onChange={e => setLocal({ ...local, socials: { ...local.socials, twitter: e.target.value } })} placeholder="https://x.com/..." />
                     </div>
                     <div>
-                        <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 500 }}>Twitter/X URL</label>
-                        <input className="input" value={local.socials?.twitter || ''} onChange={e => setLocal({ ...local, socials: { ...local.socials, twitter: e.target.value } })} placeholder="https://x.com/..." />
+                        <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, fontSize: 13, fontWeight: 600 }}>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 16, height: 16 }}><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" /></svg> TikTok
+                        </label>
+                        <input className="input" value={local.socials?.tiktok || ''} onChange={e => setLocal({ ...local, socials: { ...local.socials, tiktok: e.target.value } })} placeholder="https://tiktok.com/@..." />
                     </div>
                 </div>
             </div>
 
-            <div style={{ marginTop: 32, textAlign: 'right' }}>
-                <button className="btn btn-primary" onClick={handleSave} style={{ padding: '12px 32px', fontSize: 16 }}>Save All Changes</button>
+            {/* Save Button */}
+            <div style={{
+                position: 'sticky',
+                bottom: 20,
+                background: 'white',
+                padding: 20,
+                borderRadius: 12,
+                boxShadow: '0 -4px 20px rgba(0,0,0,0.1)',
+                display: 'flex',
+                justifyContent: 'flex-end',
+                gap: 12
+            }}>
+                <button onClick={() => setLocal({ ...config })} className="btn btn-outline">Reset Changes</button>
+                <button className="btn btn-primary" onClick={handleSave} style={{ padding: '14px 40px', fontSize: 16 }}>
+                    <Save size={18} /> Save All Changes
+                </button>
             </div>
         </div>
     )
 }
+
 
 function AdminView({ config, setConfig, products, setProducts, orders, setOrders, t }) {
     const [tab, setTab] = useState('dashboard')
@@ -839,21 +965,47 @@ function AdminView({ config, setConfig, products, setProducts, orders, setOrders
         <div style={{ display: 'flex', minHeight: '100vh', background: '#f3f4f6' }}>
             {mobileMenuOpen && <div className="overlay-mobile" onClick={() => setMobileMenuOpen(false)} />}
 
-            <div className={`admin-sidebar ${mobileMenuOpen ? 'open' : ''}`}>
+            <div className={`admin-sidebar ${mobileMenuOpen ? 'open' : ''}`} style={{ background: 'linear-gradient(180deg, #1a1a2e 0%, #16213e 100%)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 40 }}>
-                    <div style={{ fontSize: 20, fontWeight: 700 }}>Store Manager</div>
-                    <button className="md:hidden" onClick={() => setMobileMenuOpen(false)}><X size={20} /></button>
+                    <div style={{ fontSize: 20, fontWeight: 800, color: 'white' }}>🏪 Store Manager</div>
+                    <button className="mobile-only" onClick={() => setMobileMenuOpen(false)} style={{ color: 'white' }}><X size={20} /></button>
                 </div>
 
-                {['dashboard', 'orders', 'products', 'categories', 'pages', 'marketing', 'settings'].map(item => (
-                    <button key={item} onClick={() => { setTab(item); setMobileMenuOpen(false) }} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px', width: '100%', textAlign: 'left', borderRadius: 8, marginBottom: 4, background: tab === item ? '#000' : 'transparent', color: tab === item ? '#fff' : '#666' }}>
-                        {item.charAt(0).toUpperCase() + item.slice(1)}
+                {[
+                    { id: 'dashboard', icon: <BarChart size={18} />, label: 'Dashboard' },
+                    { id: 'orders', icon: <Package size={18} />, label: 'Orders' },
+                    { id: 'products', icon: <ShoppingBag size={18} />, label: 'Products' },
+                    { id: 'categories', icon: <Grid size={18} />, label: 'Categories' },
+                    { id: 'pages', icon: <FileText size={18} />, label: 'Pages' },
+                    { id: 'marketing', icon: <Tag size={18} />, label: 'Marketing' },
+                    { id: 'settings', icon: <Settings size={18} />, label: 'Settings' }
+                ].map(item => (
+                    <button
+                        key={item.id}
+                        onClick={() => { setTab(item.id); setMobileMenuOpen(false) }}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 12,
+                            padding: '14px 16px',
+                            width: '100%',
+                            textAlign: 'left',
+                            borderRadius: 10,
+                            marginBottom: 4,
+                            background: tab === item.id ? 'rgba(255,255,255,0.15)' : 'transparent',
+                            color: tab === item.id ? '#fff' : 'rgba(255,255,255,0.6)',
+                            fontWeight: tab === item.id ? 600 : 400,
+                            border: tab === item.id ? '1px solid rgba(255,255,255,0.1)' : '1px solid transparent',
+                            transition: 'all 0.2s'
+                        }}
+                    >
+                        {item.icon} {item.label}
                     </button>
                 ))}
 
-                <div style={{ marginTop: 'auto', paddingTop: 20, borderTop: '1px solid #eee' }}>
-                    <Link to="/" className="btn btn-outline" style={{ display: 'flex', width: '100%', alignItems: 'center', justifyContent: 'center', gap: 8, border: 'none', color: 'red' }}>
-                        <LogOut size={18} /> Logout
+                <div style={{ marginTop: 'auto', paddingTop: 20, borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                    <Link to="/" className="btn" style={{ display: 'flex', width: '100%', alignItems: 'center', justifyContent: 'center', gap: 8, background: 'rgba(239, 68, 68, 0.2)', color: '#ef4444', borderRadius: 8, padding: '12px' }}>
+                        <LogOut size={18} /> Exit Admin
                     </Link>
                 </div>
             </div>
@@ -1078,23 +1230,29 @@ function Home({ products, config, onQuickView, onAdd, t }) {
     return (
         <>
             {/* Hero Section */}
-            <section className="hero">
+            <section className="hero" style={{
+                background: config.hero?.image
+                    ? `linear-gradient(135deg, rgba(26, 26, 46, 0.85) 0%, rgba(22, 33, 62, 0.9) 100%), url('${config.hero.image}') center/cover no-repeat`
+                    : 'linear-gradient(135deg, rgba(26, 26, 46, 0.85) 0%, rgba(22, 33, 62, 0.9) 100%), url("https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=1920") center/cover no-repeat'
+            }}>
                 <div style={{ position: 'relative', zIndex: 1, maxWidth: 800 }}>
-                    <span style={{
-                        display: 'inline-block',
-                        background: 'rgba(233, 69, 96, 0.2)',
-                        color: '#e94560',
-                        padding: '8px 20px',
-                        borderRadius: 30,
-                        fontSize: 14,
-                        fontWeight: 600,
-                        marginBottom: 24,
-                        backdropFilter: 'blur(10px)'
-                    }}>
-                        ✨ New Collection 2024
-                    </span>
-                    <h1 className="animate-slide">{config.hero.title[language]}</h1>
-                    <p>{config.hero.subtitle[language]}</p>
+                    {(config.hero?.badge || 'New Collection 2024') && (
+                        <span style={{
+                            display: 'inline-block',
+                            background: 'rgba(233, 69, 96, 0.2)',
+                            color: '#e94560',
+                            padding: '8px 20px',
+                            borderRadius: 30,
+                            fontSize: 14,
+                            fontWeight: 600,
+                            marginBottom: 24,
+                            backdropFilter: 'blur(10px)'
+                        }}>
+                            {config.hero?.badge || '✨ New Collection 2024'}
+                        </span>
+                    )}
+                    <h1 className="animate-slide">{config.hero?.title?.[language] || 'Welcome'}</h1>
+                    <p>{config.hero?.subtitle?.[language] || 'Discover amazing products'}</p>
                     <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
                         <Link to="/shop" className="btn btn-accent" style={{ textDecoration: 'none' }}>
                             <ShoppingBag size={20} /> Explore Collection
